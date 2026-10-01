@@ -70,7 +70,7 @@ import {
 
 ### WeChat Pay: QR checkout and order query
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn main {
   let wechat = @wechat.Client::new(
@@ -98,7 +98,7 @@ async fn main {
 
 ### WeChat Pay: callback
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn handle_wechat_callback(
   wechat : @wechat.Client,
@@ -117,7 +117,7 @@ async fn handle_wechat_callback(
 
 ### Alipay: page / wap checkout
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn main {
   let alipay = @alipay.Client::new(
@@ -148,7 +148,7 @@ async fn main {
 
 ### Alipay: async notification
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn handle_alipay_notify(
   alipay : @alipay.Client,

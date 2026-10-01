@@ -31,23 +31,23 @@ time in spare moments.
 
 Goal: package skeleton in place, toolchain and OpenSSL linkage proven, CI green.
 
-- [ ] **T1.1** `[S]` Split the module into subpackages.
+- [x] **T1.1** `[S]` Split the module into subpackages.
   Create `crypto/`, `wechat/`, `alipay/` packages; keep shared types (unified
   error, config structs, small helpers) in the root package so the three
   subpackages can import it. This fixes the layout promised by the README
   architecture section.
   **Done when:** all packages build under the `native` target and the empty
   skeleton has no compile errors.
-- [ ] **T1.2** `[S]` Add `moonbitlang/async` and pin its version in `moon.mod`.
+- [x] **T1.2** `[S]` Add `moonbitlang/async` and pin its version in `moon.mod`.
   Smoke-test the native toolchain with an async `main` that sleeps and prints.
   **Done when:** `moon run cmd/main` works on native with async linked — this
   proves async's OpenSSL-based C stubs build locally.
-- [ ] **T1.3** `[M]` Add GitHub Actions CI.
+- [x] **T1.3** `[M]` Add GitHub Actions CI.
   Build + test on Linux and macOS (install OpenSSL dev packages via
   `apt`/`brew`).
   **Done when:** the workflow runs `moon build` and `moon test` green on both
   runners.
-- [ ] **T1.4** `[S]` Fill in `moon.mod` metadata (`description`, `keywords`).
+- [x] **T1.4** `[S]` Fill in `moon.mod` metadata (`description`, `keywords`).
   **Done when:** the mooncakes.io package page shows a meaningful description
   and keywords.
 
