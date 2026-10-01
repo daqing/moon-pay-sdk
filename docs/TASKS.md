@@ -47,7 +47,7 @@ Goal: package skeleton in place, toolchain and OpenSSL linkage proven, CI green.
   `apt`/`brew`).
   **Done when:** the workflow runs `moon build` and `moon test` green on both
   runners.
-- [ ] **T1.4** `[S]` Fill in `moon.mod` metadata (`description`, `keywords`).
+- [x] **T1.4** `[S]` Fill in `moon.mod` metadata (`description`, `keywords`).
   **Done when:** the mooncakes.io package page shows a meaningful description
   and keywords.
 

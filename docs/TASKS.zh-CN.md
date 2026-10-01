@@ -30,7 +30,7 @@
 - [x] **T1.3** `[M]` 添加 GitHub Actions CI。
   在 Linux 和 macOS 上构建并测试（用 `apt`/`brew` 安装 OpenSSL 开发包）。
   **完成标准：** workflow 在两个系统上都跑绿 `moon build` 和 `moon test`。
-- [ ] **T1.4** `[S]` 补全 `moon.mod` 元信息（`description`、`keywords`）。
+- [x] **T1.4** `[S]` 补全 `moon.mod` 元信息（`description`、`keywords`）。
   **完成标准：** mooncakes.io 包页面显示出有意义的描述和关键词。
 
 ## T2 — 加密层（OpenSSL FFI）

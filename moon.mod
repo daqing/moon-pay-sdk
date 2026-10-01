@@ -19,11 +19,11 @@ repository = "https://github.com/daqing/moon-pay-sdk"
 
 license = "MIT"
 
-keywords = [ ]
+keywords = [ "payment", "wechat-pay", "alipay", "sdk" ]
 
 preferred_target = "native"
 
-description = ""
+description = "Native MoonBit SDK for WeChat Pay and Alipay"
 
 import {
   "moonbitlang/async@0.22.4",
