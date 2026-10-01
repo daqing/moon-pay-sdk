@@ -4,7 +4,7 @@
 
 `moon-pay-sdk` 是一个用原生 MoonBit 编写的服务端支付 SDK，让 MoonBit 应用能够对接**微信支付**和**支付宝**：创建订单、查询订单状态，并处理两家支付平台主动推送到你服务器的异步支付通知。
 
-项目为 MoonBit 黑客松而开发，面向 MoonBit native 后端——没有 JavaScript 桥接，也没有解释器参与运行。从 RSA 请求签名、回调解密到 TLS 传输，全部以原生代码运行，底层依赖 [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async) 和轻量的 OpenSSL C 绑定。
+项目为 MoonBit 黑客松而开发，面向 MoonBit native 后端——没有 JavaScript 桥接，也没有解释器参与运行。从 RSA 请求签名、回调解密到 TLS 传输，全部以原生代码运行，底层依赖 [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async) 和 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt) 的纯 MoonBit 密码学栈。
 
 > **状态**：黑客松开发中的项目。下面的示例展示目标 API；范围与进度见 [Roadmap](#roadmap)。
 
@@ -32,7 +32,7 @@
 
 - MoonBit 工具链（`moon`），native 后端
 - Linux（epoll）或 macOS（kqueue）
-- OpenSSL — 用于 TLS 传输和 RSA/AES-GCM 加解密
+- OpenSSL — 由 moonbitlang/async 在运行时加载，用于 TLS 传输
 - 微信支付商户号（API v3 证书与密钥）和/或支付宝开放平台应用，用于真实收款
 
 ## 安装
@@ -154,18 +154,18 @@ async fn handle_alipay_notify(
 moon-pay-sdk
 ├── wechat      Native / H5 支付、查单、回调验签与解密
 ├── alipay      电脑 / 手机网站支付、查单、异步通知验签
-├── crypto      轻量 OpenSSL FFI：RSA-SHA256 签名与验签、AES-256-GCM 解密
+├── crypto      RSA-SHA256 签名与验签、X.509 解析、AES-256-GCM（mooncrypt）
 └── transport   基于 moonbitlang/async 的 HTTPS（Linux epoll / macOS kqueue）
           │
 系统依赖
 ├── moonbitlang/async 运行时
-└── OpenSSL（TLS、RSA、AES）
+└── OpenSSL（TLS 传输，由 moonbitlang/async 运行时加载）
 ```
 
 设计说明：
 
 - **异步运行时与传输** — HTTP/HTTPS 请求基于 [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async)，其 TLS 能力构建在 OpenSSL 之上。该库仍处于实验阶段，SDK 固定使用经过验证的版本。
-- **通过 OpenSSL FFI 做加解密** — 请求签名（RSA-SHA256）、验签与回调解密（AES-256-GCM）通过薄 C 绑定调用 OpenSSL。复用异步运行时本就链接的同一个 C 依赖，让原生构建保持简单，也把支付级安全正确性交给久经考验的实现，而不是手写密码学。
+- **基于 mooncrypt 的密码学** — 请求签名（RSA-SHA256）、验签与回调解密（AES-256-GCM）使用纯 MoonBit 密码学栈 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt)（算法）、`moonbitstack/mooncred`（X.509 证书）与 `moonbitstack/moonbase`（base16/base64），均按规范向量测试。不手写密码学，也不自写 OpenSSL C FFI；测试套件额外用 `openssl` 生成的参考签名做交叉验证。
 - **仅支持 native** — 商户私钥只应出现在服务端，因此 SDK 面向 native 后端，产出自包含的原生二进制。
 
 ## Roadmap
