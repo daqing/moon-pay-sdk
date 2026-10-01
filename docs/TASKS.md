@@ -42,7 +42,7 @@ Goal: package skeleton in place, toolchain and OpenSSL linkage proven, CI green.
   Smoke-test the native toolchain with an async `main` that sleeps and prints.
   **Done when:** `moon run cmd/main` works on native with async linked — this
   proves async's OpenSSL-based C stubs build locally.
-- [ ] **T1.3** `[M]` Add GitHub Actions CI.
+- [x] **T1.3** `[M]` Add GitHub Actions CI.
   Build + test on Linux and macOS (install OpenSSL dev packages via
   `apt`/`brew`).
   **Done when:** the workflow runs `moon build` and `moon test` green on both

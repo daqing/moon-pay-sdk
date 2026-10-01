@@ -27,7 +27,7 @@
 - [x] **T1.2** `[S]` 引入 `moonbitlang/async` 并在 `moon.mod` 中固定版本。
   用一个 async 版 `main`（sleep 后打印）冒烟测试 native 工具链。
   **完成标准：** `moon run cmd/main` 在 native 下正常运行——证明 async 基于 OpenSSL 的 C 桩在本机可构建。
-- [ ] **T1.3** `[M]` 添加 GitHub Actions CI。
+- [x] **T1.3** `[M]` 添加 GitHub Actions CI。
   在 Linux 和 macOS 上构建并测试（用 `apt`/`brew` 安装 OpenSSL 开发包）。
   **完成标准：** workflow 在两个系统上都跑绿 `moon build` 和 `moon test`。
 - [ ] **T1.4** `[S]` 补全 `moon.mod` 元信息（`description`、`keywords`）。
