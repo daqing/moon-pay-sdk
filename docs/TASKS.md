@@ -31,7 +31,7 @@ time in spare moments.
 
 Goal: package skeleton in place, toolchain and OpenSSL linkage proven, CI green.
 
-- [ ] **T1.1** `[S]` Split the module into subpackages.
+- [x] **T1.1** `[S]` Split the module into subpackages.
   Create `crypto/`, `wechat/`, `alipay/` packages; keep shared types (unified
   error, config structs, small helpers) in the root package so the three
   subpackages can import it. This fixes the layout promised by the README
