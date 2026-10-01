@@ -21,6 +21,6 @@ license = "MIT"
 
 keywords = [ ]
 
-preferred_target = "wasm"
+preferred_target = "native"
 
 description = ""
