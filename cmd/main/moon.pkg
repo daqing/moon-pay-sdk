@@ -1,0 +1,5 @@
+// import {
+//   "daqing/moon-pay-sdk" @lib,
+// }
+
+pkgtype(kind: "executable")
