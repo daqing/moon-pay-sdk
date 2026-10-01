@@ -24,7 +24,7 @@
 - [x] **T1.1** `[S]` 拆分子包。
   创建 `crypto/`、`wechat/`、`alipay/` 三个包；共享类型（统一错误、配置结构、小工具函数）放在根包，供三个子包引用。这一步定下 README 架构一节承诺的包布局。
   **完成标准：** 所有包在 `native` 目标下编译通过，空骨架无编译错误。
-- [ ] **T1.2** `[S]` 引入 `moonbitlang/async` 并在 `moon.mod` 中固定版本。
+- [x] **T1.2** `[S]` 引入 `moonbitlang/async` 并在 `moon.mod` 中固定版本。
   用一个 async 版 `main`（sleep 后打印）冒烟测试 native 工具链。
   **完成标准：** `moon run cmd/main` 在 native 下正常运行——证明 async 基于 OpenSSL 的 C 桩在本机可构建。
 - [ ] **T1.3** `[M]` 添加 GitHub Actions CI。

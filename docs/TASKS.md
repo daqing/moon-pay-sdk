@@ -38,7 +38,7 @@ Goal: package skeleton in place, toolchain and OpenSSL linkage proven, CI green.
   architecture section.
   **Done when:** all packages build under the `native` target and the empty
   skeleton has no compile errors.
-- [ ] **T1.2** `[S]` Add `moonbitlang/async` and pin its version in `moon.mod`.
+- [x] **T1.2** `[S]` Add `moonbitlang/async` and pin its version in `moon.mod`.
   Smoke-test the native toolchain with an async `main` that sleeps and prints.
   **Done when:** `moon run cmd/main` works on native with async linked — this
   proves async's OpenSSL-based C stubs build locally.

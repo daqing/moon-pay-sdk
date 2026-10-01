@@ -1,7 +1,7 @@
 ///|
-/// Entry point for the CLI or runnable program in this template.
-/// Keep main focused; move logic into the library package.
-/// Run with `moon run cmd/main` from the project root.
-fn main {
-  println("Hello")
+async fn main {
+  let random = @tls.rand_bytes(16)
+  println("rand_bytes(16) ok, first byte: \{random[0].to_int()}")
+  @async.sleep(100)
+  println("moonbitlang/async native smoke test passed")
 }

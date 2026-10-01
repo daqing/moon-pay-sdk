@@ -1,5 +1,6 @@
-// import {
-//   "daqing/moon-pay-sdk" @lib,
-// }
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/tls",
+}
 
 pkgtype(kind: "executable")
