@@ -171,31 +171,31 @@ offline against the mock transport.
 
 Goal: a callback endpoint can trust and parse what WeChat pushes.
 
-- [ ] **T5.1** `[L]` Platform certificate manager.
+- [x] **T5.1** `[L]` Platform certificate manager.
   `GET /v3/certificates`, decrypt `encrypt_certificate` (AES-256-GCM with the
   APIv3 key), cache serial → certificate/public key, refresh automatically
   when an unknown serial appears in a callback or response header.
   **Done when:** a mock-transport test covers fetch, decrypt, cache hit, and
   refresh-on-unknown-serial.
-- [ ] **T5.2** `[M]` Callback signature verification.
+- [x] **T5.2** `[M]` Callback signature verification.
   Read `Wechatpay-Serial/-Timestamp/-Nonce/-Signature` headers, verify the
   message `TIMESTAMP\nNONCE\nBODY\n` with the platform public key, and reject
   timestamps older than a configurable window (default 5 minutes) to block
   replays.
   **Done when:** valid, tampered, and replayed callbacks are covered by
   tests.
-- [ ] **T5.3** `[M]` Payload decryption and parsing.
+- [x] **T5.3** `[M]` Payload decryption and parsing.
   Notification envelope (event_type, resource_type,
   resource.ciphertext/nonce/associated_data) → AES-256-GCM decrypt → typed
   payment notification (out_trade_no, transaction_id, trade_state, amount,
   payer). Keep the raw decrypted JSON accessible for unknown event types.
   **Done when:** a full valid fixture decrypts and parses; wrong key or AAD
   fails with a clear error.
-- [ ] **T5.4** `[S]` Ack helpers: HTTP 200 with
+- [x] **T5.4** `[S]` Ack helpers: HTTP 200 with
   `{"code":"SUCCESS","message":"OK"}` and a failure body for 4xx/5xx replies
   (which trigger WeChat's retry schedule).
   **Done when:** snapshot tests cover both.
-- [ ] **T5.5** `[S]` Composite `verify_callback(headers, body) ->
+- [x] **T5.5** `[S]` Composite `verify_callback(headers, body) ->
   Notification` — the exact API shown in the README example.
   **Done when:** the README example compiles against the real API (update
   the READMEs if names drifted).

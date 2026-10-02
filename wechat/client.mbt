@@ -6,6 +6,8 @@ pub struct Client {
   private_key : @rsa.PrivateKey
   transport : &@transport.Transport
   now_ms : () -> Int64
+  certs : Map[String, @rsa.PublicKey]
+  verify_responses : Bool
 }
 
 ///|
@@ -13,12 +15,13 @@ pub fn Client::new(
   config~ : Config,
   transport~ : &@transport.Transport,
   now_ms? : () -> Int64 = () => @async.now(),
+  verify_responses? : Bool = true,
 ) -> Client raise @moon-pay-sdk.SdkError {
   config.validate()
   let private_key = @crypto.load_private_key_pem(config.private_key_pem) catch {
     e => raise Crypto(e)
   }
-  { config, private_key, transport, now_ms, }
+  { config, private_key, transport, now_ms, certs: Map([]), verify_responses, }
 }
 
 ///|
@@ -67,6 +70,7 @@ async fn Client::request_json(
   meth~ : @transport.Method,
   path~ : String,
   body~ : String,
+  verify? : Bool = true,
 ) -> Json raise @moon-pay-sdk.SdkError {
   let nonce = @crypto.random_hex(16) catch { e => raise Crypto(e) }
   let timestamp = (self.now_ms)() / 1000
@@ -96,8 +100,41 @@ async fn Client::request_json(
   if response.status >= 300 {
     raise api_error_from(response.status, text)
   }
+  if verify && self.verify_responses {
+    self.verify_response_signature(response, text)
+  }
   @moon-pay-sdk.parse_json(text) catch {
     e => raise Network("malformed response body: \{e}")
+  }
+}
+
+///|
+/// Verify the `Wechatpay-*` signature headers on a successful API response.
+/// Skipped for the certificate download itself: the first fetch cannot
+/// verify against a certificate it is only now receiving.
+async fn Client::verify_response_signature(
+  self : Client,
+  response : @transport.Response,
+  body : StringView,
+) -> Unit raise @moon-pay-sdk.SdkError {
+  let headers = callback_headers_of(response.headers)
+  let headers = match headers {
+    Some(headers) => headers
+    None =>
+      raise Network("response is missing the Wechatpay-* signature headers")
+  }
+  let public_key = self.platform_public_key(headers.serial)
+  let message = "\{headers.timestamp}\n\{headers.nonce}\n\{body}\n"
+  let signature = @base64.decode(headers.signature) catch {
+    _ => raise Network("response signature is not valid base64")
+  }
+  let ok = @crypto.verify_rsa_sha256(
+    public_key,
+    @utf8.encode(message)[:],
+    signature[:],
+  )
+  if !ok {
+    raise Network("response signature verification failed")
   }
 }
 

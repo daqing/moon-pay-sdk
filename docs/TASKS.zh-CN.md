@@ -100,18 +100,18 @@
 
 目标：回调端点能信任并解析微信推送的内容。
 
-- [ ] **T5.1** `[L]` 平台证书管理器。
+- [x] **T5.1** `[L]` 平台证书管理器。
   `GET /v3/certificates`，解密 `encrypt_certificate`（用 APIv3 密钥做 AES-256-GCM），缓存 序列号 → 证书/公钥，回调或响应头出现未知序列号时自动刷新。
   **完成标准：** mock 传输测试覆盖拉取、解密、缓存命中、未知序列号触发刷新。
-- [ ] **T5.2** `[M]` 回调验签。
+- [x] **T5.2** `[M]` 回调验签。
   读取 `Wechatpay-Serial/-Timestamp/-Nonce/-Signature` 请求头，用平台公钥验证报文 `TIMESTAMP\nNONCE\nBODY\n`，时间戳超过可配置窗口（默认 5 分钟）即拒绝，防重放。
   **完成标准：** 有效、被篡改、重放的回调均有测试覆盖。
-- [ ] **T5.3** `[M]` 报文解密与解析。
+- [x] **T5.3** `[M]` 报文解密与解析。
   通知信封（event_type、resource_type、resource.ciphertext/nonce/associated_data）→ AES-256-GCM 解密 → 类型化支付通知（out_trade_no、transaction_id、trade_state、金额、payer）。未知事件类型时保留原始解密 JSON 可访问。
   **完成标准：** 完整有效夹具可解密解析；密钥或 AAD 错误时给出明确错误。
-- [ ] **T5.4** `[S]` 应答辅助：HTTP 200 + `{"code":"SUCCESS","message":"OK"}`，以及用于 4xx/5xx 应答的失败报文（触发微信重试机制）。
+- [x] **T5.4** `[S]` 应答辅助：HTTP 200 + `{"code":"SUCCESS","message":"OK"}`，以及用于 4xx/5xx 应答的失败报文（触发微信重试机制）。
   **完成标准：** 两种应答均有快照测试。
-- [ ] **T5.5** `[S]` 组合函数 `verify_callback(headers, body) -> Notification`——即 README 示例展示的 API。
+- [x] **T5.5** `[S]` 组合函数 `verify_callback(headers, body) -> Notification`——即 README 示例展示的 API。
   **完成标准：** README 示例能用真实 API 编译通过（若命名有偏差则同步更新 README）。
 
 ## T6 — 支付宝客户端与异步通知

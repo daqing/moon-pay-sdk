@@ -6,5 +6,7 @@ import {
   "daqing/moon-pay-sdk/crypto",
   "daqing/moon-pay-sdk/transport",
   "moonbitstack/moonbase/base64",
+  "moonbitstack/mooncrypt/aead/gcm",
+  "moonbitstack/mooncrypt/cipher/aes",
   "moonbitstack/mooncrypt/rsa",
 }
