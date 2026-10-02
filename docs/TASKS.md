@@ -127,7 +127,7 @@ Goal: transport and parsing plumbing shared by both providers.
   `alipay.Config`), with overridable gateway/base URLs for sandbox and mock
   servers.
   **Done when:** invalid configs are rejected with clear messages.
-- [ ] **T3.5** `[S]` Money and order-number helpers.
+- [x] **T3.5** `[S]` Money and order-number helpers.
   WeChat amounts in integer fen; Alipay amounts as two-decimal yuan strings;
   `out_trade_no` charset/length validation for both.
   **Done when:** edge-case unit tests pass (zero, rounding, bad charset).
