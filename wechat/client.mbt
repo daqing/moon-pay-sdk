@@ -6,6 +6,7 @@ pub struct Client {
   private_key : @rsa.PrivateKey
   transport : &@transport.Transport
   now_ms : () -> Int64
+  certs : Map[String, @rsa.PublicKey]
 }
 
 ///|
@@ -18,7 +19,7 @@ pub fn Client::new(
   let private_key = @crypto.load_private_key_pem(config.private_key_pem) catch {
     e => raise Crypto(e)
   }
-  { config, private_key, transport, now_ms, }
+  { config, private_key, transport, now_ms, certs: Map([]), }
 }
 
 ///|

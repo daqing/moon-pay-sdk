@@ -23,12 +23,15 @@ pub struct Client {
   private_key : @rsa.PrivateKey
   transport : &@transport.Transport
   now_ms : () -> Int64
+  certs : Map[String, @rsa.PublicKey]
 }
 pub async fn Client::h5_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, payer_client_ip~ : String) -> H5Order raise @moon-pay-sdk.SdkError
 pub async fn Client::native_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String) -> NativeOrder raise @moon-pay-sdk.SdkError
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
+pub async fn Client::platform_public_key(Self, String) -> @rsa.PublicKey raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order_by_id(Self, transaction_id~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
+pub async fn Client::refresh_platform_certs(Self) -> Unit raise @moon-pay-sdk.SdkError
 
 pub(all) struct Config {
   appid : String

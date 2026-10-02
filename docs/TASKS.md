@@ -171,7 +171,7 @@ offline against the mock transport.
 
 Goal: a callback endpoint can trust and parse what WeChat pushes.
 
-- [ ] **T5.1** `[L]` Platform certificate manager.
+- [x] **T5.1** `[L]` Platform certificate manager.
   `GET /v3/certificates`, decrypt `encrypt_certificate` (AES-256-GCM with the
   APIv3 key), cache serial → certificate/public key, refresh automatically
   when an unknown serial appears in a callback or response header.
