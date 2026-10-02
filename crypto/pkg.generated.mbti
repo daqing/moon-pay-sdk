@@ -7,6 +7,8 @@ import {
 }
 
 // Values
+pub fn aes256_gcm_decrypt(BytesView, BytesView, BytesView, aad? : BytesView) -> Bytes raise CryptoError
+
 pub fn certificate_public_key(@x509.Cert) -> @rsa.PublicKey raise CryptoError
 
 pub fn certificate_serial_hex(@x509.Cert) -> String

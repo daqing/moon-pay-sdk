@@ -86,7 +86,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
   RSA public key and (b) the serial number formatted as lowercase hex — the
   form WeChat uses in the `Wechatpay-Serial` header.
   **Done when:** a self-signed test certificate round-trips both fields.
-- [ ] **T2.6** `[M]` AES-256-GCM decryption (`aes256_gcm_decrypt`).
+- [x] **T2.6** `[M]` AES-256-GCM decryption (`aes256_gcm_decrypt`).
   WeChat v3 callbacks: base64 ciphertext with the 16-byte GCM tag appended,
   12-byte nonce, optional associated data — the exact format
   `@gcm.Gcm::open` expects.

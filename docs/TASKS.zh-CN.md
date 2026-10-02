@@ -51,7 +51,7 @@
 - [x] **T2.5** `[S]` X.509 证书解析。
   经 `@x509.parse` / `Spki::rsa`：从 PEM 证书提取 (a) RSA 公钥和 (b) 小写十六进制序列号——即微信 `Wechatpay-Serial` 请求头所用的形式。
   **完成标准：** 自签名测试证书的两个字段均可往返解析。
-- [ ] **T2.6** `[M]` AES-256-GCM 解密（`aes256_gcm_decrypt`）。
+- [x] **T2.6** `[M]` AES-256-GCM 解密（`aes256_gcm_decrypt`）。
   微信 v3 回调场景：base64 密文末尾附加 16 字节 GCM tag，12 字节 nonce，可选关联数据——正是 `@gcm.Gcm::open` 期望的格式。
   **完成标准：** 参考向量解密结果一致；密文、tag、AAD 任一被篡改都能干净失败。
 - [ ] **T2.7** `[S]` 随机数：经 `@async/fs` 读取 `/dev/urandom`（Linux/macOS），`@base16` 做十六进制编码；文档记录备选方案 `@async/tls.rand_bytes`。
