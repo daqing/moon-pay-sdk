@@ -12,4 +12,4 @@ import {
   "moonbitstack/mooncrypt/aead/gcm",
   "moonbitstack/mooncrypt/cipher/aes",
   "moonbitstack/mooncrypt/rsa",
-}
+} for "wbtest"

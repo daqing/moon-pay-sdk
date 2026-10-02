@@ -82,9 +82,7 @@ fn demo_alipay() -> Unit {
   ) catch {
     e => abort("page pay url failed: \{e}")
   }
-  println(
-    "checkout redirect (first 100 chars): \{url.substring(start=0, end=100)}…",
-  )
+  println("checkout redirect (first 100 chars): \{url[:100]}…")
   // 2. The provider posts a signed notification; verify and reconcile it
   //    against the local order amount.
   let unsigned : Array[(String, String)] = [
