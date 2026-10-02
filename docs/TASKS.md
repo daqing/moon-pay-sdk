@@ -184,7 +184,7 @@ Goal: a callback endpoint can trust and parse what WeChat pushes.
   replays.
   **Done when:** valid, tampered, and replayed callbacks are covered by
   tests.
-- [ ] **T5.3** `[M]` Payload decryption and parsing.
+- [x] **T5.3** `[M]` Payload decryption and parsing.
   Notification envelope (event_type, resource_type,
   resource.ciphertext/nonce/associated_data) → AES-256-GCM decrypt → typed
   payment notification (out_trade_no, transaction_id, trade_state, amount,

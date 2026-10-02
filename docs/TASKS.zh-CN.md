@@ -106,7 +106,7 @@
 - [x] **T5.2** `[M]` 回调验签。
   读取 `Wechatpay-Serial/-Timestamp/-Nonce/-Signature` 请求头，用平台公钥验证报文 `TIMESTAMP\nNONCE\nBODY\n`，时间戳超过可配置窗口（默认 5 分钟）即拒绝，防重放。
   **完成标准：** 有效、被篡改、重放的回调均有测试覆盖。
-- [ ] **T5.3** `[M]` 报文解密与解析。
+- [x] **T5.3** `[M]` 报文解密与解析。
   通知信封（event_type、resource_type、resource.ciphertext/nonce/associated_data）→ AES-256-GCM 解密 → 类型化支付通知（out_trade_no、transaction_id、trade_state、金额、payer）。未知事件类型时保留原始解密 JSON 可访问。
   **完成标准：** 完整有效夹具可解密解析；密钥或 AAD 错误时给出明确错误。
 - [ ] **T5.4** `[S]` 应答辅助：HTTP 200 + `{"code":"SUCCESS","message":"OK"}`，以及用于 4xx/5xx 应答的失败报文（触发微信重试机制）。
