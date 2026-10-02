@@ -1,0 +1,15 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/http",
+  "moonbitlang/async/socket",
+  "moonbitlang/core/encoding/utf8",
+  "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/alipay",
+  "daqing/moon-pay-sdk/crypto",
+  "daqing/moon-pay-sdk/transport",
+  "daqing/moon-pay-sdk/wechat",
+  "moonbitstack/moonbase/base64",
+  "moonbitstack/mooncrypt/aead/gcm",
+  "moonbitstack/mooncrypt/cipher/aes",
+  "moonbitstack/mooncrypt/rsa",
+}
