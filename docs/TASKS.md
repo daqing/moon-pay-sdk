@@ -119,7 +119,7 @@ Goal: transport and parsing plumbing shared by both providers.
   Typed encode/decode helpers with useful error messages.
   **Done when:** round-trip unit tests pass, including malformed-input
   errors.
-- [ ] **T3.3** `[S]` Unified error model.
+- [x] **T3.3** `[S]` Unified error model.
   `ApiError{code, message, ...}` for provider errors plus network / crypto /
   config variants; all public functions return `Result`-style values.
   **Done when:** error construction and rendering are unit-tested.

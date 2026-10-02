@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "daqing/moon-pay-sdk"
 
+import {
+  "daqing/moon-pay-sdk/crypto",
+}
+
 // Values
 pub fn array_field(Json, String) -> Array[Json] raise JsonError
 
@@ -23,7 +27,23 @@ pub(all) suberror JsonError {
   WrongType(String, String)
 }
 
+pub(all) suberror SdkError {
+  Api(ApiError)
+  Network(String)
+  Crypto(@crypto.CryptoError)
+  Config(String)
+}
+pub fn SdkError::output(Self, &Logger) -> Unit
+pub fn SdkError::to_string(Self) -> String
+pub impl Show for SdkError
+
 // Types and methods
+pub(all) struct ApiError {
+  code : String
+  message : String
+  http_status : Int?
+}
+pub fn ApiError::new(code~ : String, message~ : String, http_status? : Int?) -> Self
 
 // Type aliases
 

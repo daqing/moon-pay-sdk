@@ -11,3 +11,19 @@ pub(all) suberror CryptoError {
   /// The entropy source could not be read.
   Random(String)
 }
+
+///|
+pub impl Show for CryptoError with fn output(
+  self : CryptoError,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    Malformed(detail) => logger.write_string("malformed: \{detail}")
+    Unsupported(detail) => logger.write_string("unsupported: \{detail}")
+    Operation(detail) => logger.write_string("operation failed: \{detail}")
+    Random(detail) => logger.write_string("random source: \{detail}")
+  }
+}
+
+///|
+pub extend CryptoError with Show::{output, to_string}

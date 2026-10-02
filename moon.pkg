@@ -1,3 +1,4 @@
 import {
   "moonbitlang/core/json",
+  "daqing/moon-pay-sdk/crypto",
 }
