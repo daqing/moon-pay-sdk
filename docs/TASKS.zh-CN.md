@@ -109,7 +109,7 @@
 - [x] **T5.3** `[M]` 报文解密与解析。
   通知信封（event_type、resource_type、resource.ciphertext/nonce/associated_data）→ AES-256-GCM 解密 → 类型化支付通知（out_trade_no、transaction_id、trade_state、金额、payer）。未知事件类型时保留原始解密 JSON 可访问。
   **完成标准：** 完整有效夹具可解密解析；密钥或 AAD 错误时给出明确错误。
-- [ ] **T5.4** `[S]` 应答辅助：HTTP 200 + `{"code":"SUCCESS","message":"OK"}`，以及用于 4xx/5xx 应答的失败报文（触发微信重试机制）。
+- [x] **T5.4** `[S]` 应答辅助：HTTP 200 + `{"code":"SUCCESS","message":"OK"}`，以及用于 4xx/5xx 应答的失败报文（触发微信重试机制）。
   **完成标准：** 两种应答均有快照测试。
 - [ ] **T5.5** `[S]` 组合函数 `verify_callback(headers, body) -> Notification`——即 README 示例展示的 API。
   **完成标准：** README 示例能用真实 API 编译通过（若命名有偏差则同步更新 README）。

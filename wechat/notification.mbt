@@ -55,7 +55,7 @@ pub fn Notification::resource(self : Notification) -> Json {
 ///|
 /// Decrypt the notification's `resource` blob (AES-256-GCM under the APIv3
 /// key) and return the plaintext JSON.
-async fn Client::decrypt_notification_resource(
+fn Client::decrypt_notification_resource(
   self : Client,
   envelope : Json,
 ) -> Json raise @moon-pay-sdk.SdkError {

@@ -191,7 +191,7 @@ Goal: a callback endpoint can trust and parse what WeChat pushes.
   payer). Keep the raw decrypted JSON accessible for unknown event types.
   **Done when:** a full valid fixture decrypts and parses; wrong key or AAD
   fails with a clear error.
-- [ ] **T5.4** `[S]` Ack helpers: HTTP 200 with
+- [x] **T5.4** `[S]` Ack helpers: HTTP 200 with
   `{"code":"SUCCESS","message":"OK"}` and a failure body for 4xx/5xx replies
   (which trigger WeChat's retry schedule).
   **Done when:** snapshot tests cover both.
