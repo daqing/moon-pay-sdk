@@ -91,7 +91,7 @@
   **完成标准：** mock 传输测试断言请求 JSON 与请求头，并成功解析响应。
 - [x] **T4.3** `[M]` H5 下单：`POST /v3/pay/transactions/h5`，带 `scene_info.payer_client_ip` → 返回 `h5_url`。
   **完成标准：** mock 传输测试通过。
-- [ ] **T4.4** `[M]` 查单：按 `out_trade_no` 和 `transaction_id` 查询 → 类型化结果，含 `trade_state` 枚举（SUCCESS、REFUND、NOTPAY、CLOSED、REVOKED、USERPAYING、PAYERROR）、金额、交易单号。
+- [x] **T4.4** `[M]` 查单：按 `out_trade_no` 和 `transaction_id` 查询 → 类型化结果，含 `trade_state` 枚举（SUCCESS、REFUND、NOTPAY、CLOSED、REVOKED、USERPAYING、PAYERROR）、金额、交易单号。
   **完成标准：** 覆盖全部状态及 `ORDER_NOT_EXIST` 错误映射。
 - [ ] **T4.5** `[S]` `(optional)` 基于平台证书的 API 响应验签（依赖 T5.1）。若推迟，在文档中说明取舍。
 

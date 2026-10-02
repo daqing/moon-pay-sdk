@@ -151,7 +151,7 @@ offline against the mock transport.
 - [x] **T4.3** `[M]` H5 order: `POST /v3/pay/transactions/h5` with
   `scene_info.payer_client_ip` → `h5_url`.
   **Done when:** mock-transport test passes.
-- [ ] **T4.4** `[M]` Order query: by `out_trade_no` and by `transaction_id`
+- [x] **T4.4** `[M]` Order query: by `out_trade_no` and by `transaction_id`
   → typed result with a `trade_state` enum (SUCCESS, REFUND, NOTPAY, CLOSED,
   REVOKED, USERPAYING, PAYERROR), amounts, and transaction id.
   **Done when:** all states and the `ORDER_NOT_EXIST` error mapping are
