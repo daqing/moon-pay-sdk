@@ -37,7 +37,7 @@
 
 目标：两家平台需要的所有密码学原语，以纯 MoonBit API 收在 `crypto` 包里——不再自写 OpenSSL C FFI。构建在纯 MoonBit 密码学栈之上：算法在 `moonbitstack/mooncrypt`（RSA、AES-GCM、ASN.1），证书在 `moonbitstack/mooncred`（X.509），编解码在 `moonbitstack/moonbase`（base16/base64）。OpenSSL 只保留在 `moonbitlang/async` 内部，由它在运行时加载用于 TLS 传输。
 
-- [ ] **T2.1** `[S]` 依赖脚手架。
+- [x] **T2.1** `[S]` 依赖脚手架。
   引入并固定 `moonbitstack/mooncrypt@0.3.1`、`moonbitstack/mooncred@0.6.1`、`moonbitstack/moonbase@0.4.0`；在 `crypto` 包中引用。
   **完成标准：** 单元测试通过 `mooncrypt/rsa` 完成一次简单的签名/验签往返，证明依赖图在 native 下可构建。
 - [ ] **T2.2** `[M]` 密钥加载。

@@ -60,7 +60,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
 `moonbitstack/moonbase` (base16/base64). OpenSSL remains only inside
 `moonbitlang/async`, which loads it at runtime for TLS transport.
 
-- [ ] **T2.1** `[S]` Dependency scaffolding.
+- [x] **T2.1** `[S]` Dependency scaffolding.
   Add and pin `moonbitstack/mooncrypt@0.3.1`, `moonbitstack/mooncred@0.6.1`
   and `moonbitstack/moonbase@0.4.0`; import them from the `crypto` package.
   **Done when:** a unit test round-trips a trivial sign/verify through
