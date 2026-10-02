@@ -11,7 +11,8 @@ The project is being developed for the MoonBit Hackathon. It targets the
 MoonBit native backend — no JavaScript bridge, no interpreter in the loop. The
 whole payment flow, from RSA request signing to TLS transport, runs as native
 code built on [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async)
-and thin OpenSSL C bindings.
+and the pure-MoonBit cryptography of
+[`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt).
 
 > **Status**: work in progress for the hackathon. The examples below show the
 > target API; see [Roadmap](#roadmap) for scope and progress.
@@ -47,7 +48,7 @@ releases — see [Roadmap](#roadmap).
 
 - MoonBit toolchain (`moon`) with the native backend
 - Linux (epoll) or macOS (kqueue)
-- OpenSSL — used for TLS transport and RSA/AES-GCM crypto
+- OpenSSL — loaded at runtime by moonbitlang/async for TLS transport
 - A WeChat Pay merchant account (API v3 certificates and keys) and/or an
   Alipay open-platform application, to actually move money
 
@@ -171,12 +172,12 @@ your MoonBit application
 moon-pay-sdk
 ├── wechat      Native / H5 payment, order query, callback verify & decrypt
 ├── alipay      page / wap payment, order query, async notification verify
-├── crypto      thin OpenSSL FFI: RSA-SHA256 sign & verify, AES-256-GCM decrypt
+├── crypto      RSA-SHA256 sign & verify, X.509 parsing, AES-256-GCM (mooncrypt)
 └── transport   HTTPS over moonbitlang/async (epoll on Linux, kqueue on macOS)
           │
 system dependencies
 ├── moonbitlang/async runtime
-└── OpenSSL (TLS, RSA, AES)
+└── OpenSSL (TLS transport, loaded at runtime by moonbitlang/async)
 ```
 
 Design notes:
@@ -185,11 +186,14 @@ Design notes:
   [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async), whose
   TLS support is based on OpenSSL. The library is experimental; the SDK pins a
   known-good version.
-- **Crypto via OpenSSL FFI** — request signing (RSA-SHA256), signature
-  verification and callback decryption (AES-256-GCM) call OpenSSL through thin
-  C bindings. Reusing the one C dependency the async runtime already links
-  keeps the native build simple, and leaves payment-grade correctness to a
-  battle-tested implementation instead of hand-rolled crypto.
+- **Crypto via mooncrypt** — request signing (RSA-SHA256), signature
+  verification and callback decryption (AES-256-GCM) use the pure-MoonBit
+  crypto stack [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt)
+  (algorithms), `moonbitstack/mooncred` (X.509 certificates) and
+  `moonbitstack/moonbase` (base16/base64), all tested against specification
+  vectors. No hand-rolled crypto and no OpenSSL C FFI of our own; the test
+  suite additionally cross-checks signature outputs against
+  `openssl`-generated reference signatures.
 - **Native only** — merchant private keys belong on servers, so the SDK
   targets the native backend and produces a self-contained binary.
 

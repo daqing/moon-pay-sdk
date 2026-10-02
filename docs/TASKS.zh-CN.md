@@ -33,32 +33,32 @@
 - [x] **T1.4** `[S]` 补全 `moon.mod` 元信息（`description`、`keywords`）。
   **完成标准：** mooncakes.io 包页面显示出有意义的描述和关键词。
 
-## T2 — 加密层（OpenSSL FFI）
+## T2 — 加密层（mooncrypt）
 
-目标：两家平台需要的所有密码学原语，以纯 MoonBit API 收在 `crypto` 包里。`moonbitlang/async/tls` 在 native 下已经链接 OpenSSL——直接参照它的构建/链接配置，不要重复造轮子。
+目标：两家平台需要的所有密码学原语，以纯 MoonBit API 收在 `crypto` 包里——不再自写 OpenSSL C FFI。构建在纯 MoonBit 密码学栈之上：算法在 `moonbitstack/mooncrypt`（RSA、AES-GCM、ASN.1），证书在 `moonbitstack/mooncred`（X.509），编解码在 `moonbitstack/moonbase`（base16/base64）。OpenSSL 只保留在 `moonbitlang/async` 内部，由它在运行时加载用于 TLS 传输。
 
-- [ ] **T2.1** `[M]` FFI 脚手架。
-  在 `crypto` 包链接 OpenSSL，绑定一个简单函数（如 `OpenSSL_version`）。
-  **完成标准：** 单元测试断言链接到的 OpenSSL 版本字符串非空。
-- [ ] **T2.2** `[M]` 密钥加载。
-  从字符串和文件加载无口令 PEM 格式 RSA 私钥（PKCS#1/PKCS#8）和公钥（X.509 SubjectPublicKeyInfo）；显式资源释放；绝不打印密钥内容。
-  **完成标准：** 测试夹具可加载，畸形 PEM 返回错误值而不是崩溃。
-- [ ] **T2.3** `[M]` RSA-SHA256 签名（`sign_rsa_sha256`）。
-  用商户私钥对报文签名——微信 v3 请求鉴权和支付宝 RSA2 共同的基础原语。
+- [x] **T2.1** `[S]` 依赖脚手架。
+  引入并固定 `moonbitstack/mooncrypt@0.3.1`、`moonbitstack/mooncred@0.6.1`、`moonbitstack/moonbase@0.4.0`；在 `crypto` 包中引用。
+  **完成标准：** 单元测试通过 `mooncrypt/rsa` 完成一次简单的签名/验签往返，证明依赖图在 native 下可构建。
+- [x] **T2.2** `[M]` 密钥加载。
+  用 `@x509.pem` 解码 PEM 信封（RFC 7468），再用 `@asn1` 的 TLV 原语走 PKCS#8 / PKCS#1 `RSAPrivateKey` DER 结构取出 (n, e, d)，构造 `@rsa.PrivateKey`；PEM 公钥（SubjectPublicKeyInfo）同样处理；绝不打印密钥内容。
+  **完成标准：** 测试夹具能加载为可用密钥，畸形 PEM/DER 返回错误值而不是崩溃。
+- [x] **T2.3** `[M]` RSA-SHA256 签名（`sign_rsa_sha256`）。
+  用商户私钥对报文签名（`@rsa.PrivateKey::sign`，scheme=Pkcs1、digest=Sha256）——微信 v3 请求鉴权和支付宝 RSA2 共同的基础原语。
   **完成标准：** 本实现产出的签名能通过 `openssl dgst -sha256 -sign` 生成参考签名的交叉验证。
-- [ ] **T2.4** `[M]` RSA-SHA256 验签（`verify_rsa_sha256`）。
+- [x] **T2.4** `[M]` RSA-SHA256 验签（`verify_rsa_sha256`）。
   **完成标准：** 有效签名通过；无效、被篡改、密钥不匹配分别以不同错误失败。
-- [ ] **T2.5** `[L]` X.509 证书解析。
-  从 PEM 证书提取 (a) RSA 公钥和 (b) 小写十六进制序列号——即微信 `Wechatpay-Serial` 请求头所用的形式。
+- [x] **T2.5** `[S]` X.509 证书解析。
+  经 `@x509.parse` / `Spki::rsa`：从 PEM 证书提取 (a) RSA 公钥和 (b) 小写十六进制序列号——即微信 `Wechatpay-Serial` 请求头所用的形式。
   **完成标准：** 自签名测试证书的两个字段均可往返解析。
-- [ ] **T2.6** `[M]` AES-256-GCM 解密（`aes256_gcm_decrypt`）。
-  微信 v3 回调场景：base64 密文末尾附加 16 字节 GCM tag，12 字节 nonce，可选关联数据。
+- [x] **T2.6** `[M]` AES-256-GCM 解密（`aes256_gcm_decrypt`）。
+  微信 v3 回调场景：base64 密文末尾附加 16 字节 GCM tag，12 字节 nonce，可选关联数据——正是 `@gcm.Gcm::open` 期望的格式。
   **完成标准：** 参考向量解密结果一致；密文、tag、AAD 任一被篡改都能干净失败。
-- [ ] **T2.7** `[S]` 随机数：`RAND_bytes` 封装 + 十六进制 nonce 生成。
+- [x] **T2.7** `[S]` 随机数：经 `@async/fs` 读取 `/dev/urandom`（Linux/macOS），`@base16` 做十六进制编码；文档记录备选方案 `@async/tls.rand_bytes`。
   **完成标准：** 长度与字符集单元测试通过。
-- [ ] **T2.8** `[S]` 错误映射：OpenSSL 失败 → 类型化的 `CryptoError`。
+- [x] **T2.8** `[S]` 错误映射：`@spec.Broken`、`@asn1.Refused` 及 base64 失败 → 类型化的 `CryptoError`。
   **完成标准：** `crypto` 包的公开函数不 panic、不 abort。
-- [ ] **T2.9** `[S]` `test_keys/` 下的测试夹具（商户密钥对、平台风格自签证书），并附上可复现它们的 openssl 命令序列文档。
+- [x] **T2.9** `[S]` `test_keys/` 下的测试夹具（商户密钥对、平台风格自签证书），并附上可复现它们的 openssl 命令序列文档。
   **完成标准：** 夹具已提交、明确标注仅用于测试，且再生流程可复现。
 
 ## T3 — 共享运行时与工具
