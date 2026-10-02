@@ -81,7 +81,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
 - [x] **T2.4** `[M]` RSA-SHA256 verification (`verify_rsa_sha256`).
   **Done when:** valid signatures pass; invalid, tampered, and wrong-key
   cases fail with distinct errors.
-- [ ] **T2.5** `[S]` X.509 certificate parsing.
+- [x] **T2.5** `[S]` X.509 certificate parsing.
   Via `@x509.parse` / `Spki::rsa`: from a PEM certificate, extract (a) the
   RSA public key and (b) the serial number formatted as lowercase hex — the
   form WeChat uses in the `Wechatpay-Serial` header.

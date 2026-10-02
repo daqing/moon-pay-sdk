@@ -2,10 +2,17 @@
 package "daqing/moon-pay-sdk/crypto"
 
 import {
+  "moonbitstack/mooncred/x509",
   "moonbitstack/mooncrypt/rsa",
 }
 
 // Values
+pub fn certificate_public_key(@x509.Cert) -> @rsa.PublicKey raise CryptoError
+
+pub fn certificate_serial_hex(@x509.Cert) -> String
+
+pub fn load_certificate_pem(String) -> @x509.Cert raise CryptoError
+
 pub fn load_private_key_pem(String) -> @rsa.PrivateKey raise CryptoError
 
 pub fn load_public_key_pem(String) -> @rsa.PublicKey raise CryptoError
