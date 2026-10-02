@@ -220,7 +220,7 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
 - [x] **T6.4** `[S]` `wap_pay_url` (`alipay.trade.wap.pay`) — mobile website
   checkout.
   **Done when:** same validation as T6.3.
-- [ ] **T6.5** `[M]` Order query (`alipay.trade.query`): POST form to the
+- [x] **T6.5** `[M]` Order query (`alipay.trade.query`): POST form to the
   gateway, verify the response `sign`, map `trade_status` (WAIT_BUYER_PAY,
   TRADE_CLOSED, TRADE_SUCCESS, TRADE_FINISHED).
   **Done when:** mock tests cover all states and error mapping

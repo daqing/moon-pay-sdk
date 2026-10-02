@@ -127,7 +127,7 @@
   **完成标准：** 生成 URL 中的签名能用支付宝公钥验证通过（用沙箱或官方验签工具核对）。
 - [x] **T6.4** `[S]` `wap_pay_url`（`alipay.trade.wap.pay`）——手机网站支付。
   **完成标准：** 同 T6.3 的验证方式。
-- [ ] **T6.5** `[M]` 查单（`alipay.trade.query`）：POST 表单到网关，验证响应 `sign`，映射 `trade_status`（WAIT_BUYER_PAY、TRADE_CLOSED、TRADE_SUCCESS、TRADE_FINISHED）。
+- [x] **T6.5** `[M]` 查单（`alipay.trade.query`）：POST 表单到网关，验证响应 `sign`，映射 `trade_status`（WAIT_BUYER_PAY、TRADE_CLOSED、TRADE_SUCCESS、TRADE_FINISHED）。
   **完成标准：** mock 测试覆盖全部状态与错误映射（如 ACQ.TRADE_NOT_EXIST）。
 - [ ] **T6.6** `[M]` 异步通知验签。
   解析 POST 表单参数，RSA2 验签（排除 `sign`/`sign_type`），产出类型化 `NotifyResult`（trade_status、out_trade_no、trade_no、total_amount、app_id、seller_id），并提供金额比对辅助函数，让业务侧能确认通知与本地订单一致。
