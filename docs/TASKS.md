@@ -123,7 +123,7 @@ Goal: transport and parsing plumbing shared by both providers.
   `ApiError{code, message, ...}` for provider errors plus network / crypto /
   config variants; all public functions return `Result`-style values.
   **Done when:** error construction and rendering are unit-tested.
-- [ ] **T3.4** `[S]` Config structs and validation (`wechat.Config`,
+- [x] **T3.4** `[S]` Config structs and validation (`wechat.Config`,
   `alipay.Config`), with overridable gateway/base URLs for sandbox and mock
   servers.
   **Done when:** invalid configs are rejected with clear messages.
