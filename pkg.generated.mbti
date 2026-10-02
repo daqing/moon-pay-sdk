@@ -24,6 +24,8 @@ pub fn parse_yuan_fen(StringView) -> Int raise SdkError
 
 pub fn string_field(Json, String) -> String raise JsonError
 
+pub fn try_parse_json(StringView) -> Json?
+
 pub fn validate_alipay_out_trade_no(StringView) -> Unit raise SdkError
 
 pub fn validate_amount_fen(Int) -> Unit raise SdkError
@@ -36,6 +38,9 @@ pub(all) suberror JsonError {
   Missing(String)
   WrongType(String, String)
 }
+pub fn JsonError::output(Self, &Logger) -> Unit
+pub fn JsonError::to_string(Self) -> String
+pub impl Show for JsonError
 
 pub(all) suberror SdkError {
   Api(ApiError)

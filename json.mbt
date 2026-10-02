@@ -11,10 +11,33 @@ pub(all) suberror JsonError {
 }
 
 ///|
+pub impl Show for JsonError with fn output(self : JsonError, logger : &Logger) -> Unit {
+  match self {
+    Invalid(detail) => logger.write_string("invalid json: \{detail}")
+    Missing(key) => logger.write_string("field \"\{key}\" is missing")
+    WrongType(key, expected) =>
+      logger.write_string("field \"\{key}\" is not \{expected}")
+  }
+}
+
+///|
+pub extend JsonError with Show::{output, to_string}
+
+///|
 /// Parse JSON text, with the parse failure re-wrapped as `JsonError::Invalid`.
 pub fn parse_json(text : StringView) -> Json raise JsonError {
   @json.parse(text) catch {
     e => raise Invalid("\{e}")
+  }
+}
+
+///|
+/// Parse JSON text, returning `None` instead of raising on malformed input.
+pub fn try_parse_json(text : StringView) -> Json? {
+  try @json.parse(text) catch {
+    _ => None
+  } noraise {
+    json => Some(json)
   }
 }
 

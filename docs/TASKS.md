@@ -137,27 +137,35 @@ Goal: transport and parsing plumbing shared by both providers.
 Goal: the three server APIs with correctly signed requests, testable fully
 offline against the mock transport.
 
-- [ ] **T4.1** `[M]` Request signing and `Authorization` header.
+- [x] **T4.1** `[M]` Request signing and `Authorization` header.
   Canonical message: `METHOD\nPATH?QUERY\nTIMESTAMP\nNONCE\nBODY\n`,
   scheme `WECHATPAY2-SHA256-RSA2048` with `mchid`, `serial_no`, `timestamp`,
   `nonce_str`, `signature`.
   **Done when:** a golden-vector test matches a reference signature produced
   by `openssl`.
-- [ ] **T4.2** `[M]` Native order: `POST /v3/pay/transactions/native`
+- [x] **T4.2** `[M]` Native order: `POST /v3/pay/transactions/native`
   (appid, mchid, description, out_trade_no, notify_url, `amount.total` in
   fen) → `code_url` for the QR code.
   **Done when:** a mock-transport test asserts the request JSON and headers
   and parses the response.
-- [ ] **T4.3** `[M]` H5 order: `POST /v3/pay/transactions/h5` with
+- [x] **T4.3** `[M]` H5 order: `POST /v3/pay/transactions/h5` with
   `scene_info.payer_client_ip` → `h5_url`.
   **Done when:** mock-transport test passes.
-- [ ] **T4.4** `[M]` Order query: by `out_trade_no` and by `transaction_id`
+- [x] **T4.4** `[M]` Order query: by `out_trade_no` and by `transaction_id`
   → typed result with a `trade_state` enum (SUCCESS, REFUND, NOTPAY, CLOSED,
   REVOKED, USERPAYING, PAYERROR), amounts, and transaction id.
   **Done when:** all states and the `ORDER_NOT_EXIST` error mapping are
   tested.
-- [ ] **T4.5** `[S]` `(optional)` API response signature verification using
+- [x] **T4.5** `[S]` `(optional)` API response signature verification using
   platform certificates (needs T5.1). Document the tradeoff if deferred.
+  **Deferred to the T5 phase, right after T5.1 lands.** Tradeoff: response
+  verification needs the platform-certificate manager (fetch, decrypt,
+  cache), which is the first task of T5; wiring it into `request_json` is
+  planned immediately after. In the meantime every request rides TLS, and
+  the trust anchor for payment success is the verified callback (T5.2/T5.3)
+  rather than the synchronous response, so the unverified window does not
+  affect the charge decision; API response verification then closes the gap
+  as defense in depth.
 
 ## T5 — WeChat callback handling
 
