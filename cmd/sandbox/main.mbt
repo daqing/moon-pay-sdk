@@ -8,7 +8,7 @@
 ///   ALIPAY_APP_ID          sandbox app id
 ///   ALIPAY_PRIVATE_KEY     application private key, PEM
 ///   ALIPAY_PUBLIC_KEY      Alipay public key, PEM
-async fn main {
+fn main {
   let app_id = @env.get_env_var("ALIPAY_APP_ID")
   let private_key = @env.get_env_var("ALIPAY_PRIVATE_KEY")
   let public_key = @env.get_env_var("ALIPAY_PUBLIC_KEY")
