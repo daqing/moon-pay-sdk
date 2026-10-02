@@ -3,9 +3,17 @@ package "daqing/moon-pay-sdk/alipay"
 
 import {
   "daqing/moon-pay-sdk",
+  "moonbitstack/mooncrypt/rsa",
 }
 
 // Values
+pub fn build_sign_content(Array[(String, String)]) -> String
+
+pub fn format_beijing(Int64) -> String
+
+pub fn sign_params(@rsa.PrivateKey, Array[(String, String)]) -> String raise @moon-pay-sdk.SdkError
+
+pub fn system_params(Config, method~ : String, timestamp~ : String, notify_url? : String?, return_url? : String?) -> Array[(String, String)]
 
 // Errors
 

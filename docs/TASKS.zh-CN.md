@@ -118,7 +118,7 @@
 
 目标：签名的跳转 URL、查单、可信的异步通知。
 
-- [ ] **T6.1** `[M]` 参数引擎。
+- [x] **T6.1** `[M]` 参数引擎。
   系统参数（app_id、method、format、charset、sign_type=RSA2、timestamp、version、notify_url / return_url）+ `biz_content` JSON；规范串 = 参数按 key 排序、排除 `sign` 与 `sign_type`、以 `k=v&` 拼接；RSA2 签名。
   **完成标准：** golden vector 测试固定规范串与签名。
 - [ ] **T6.2** `[S]` 跳转 URL 构造器，为 `gateway.do` GET 流程做百分号编码。

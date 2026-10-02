@@ -204,7 +204,7 @@ Goal: a callback endpoint can trust and parse what WeChat pushes.
 
 Goal: signed redirect URLs, order query, and trusted async notifications.
 
-- [ ] **T6.1** `[M]` Parameter engine.
+- [x] **T6.1** `[M]` Parameter engine.
   System params (app_id, method, format, charset, sign_type=RSA2, timestamp,
   version, notify_url / return_url) plus `biz_content` JSON; canonical
   string = params sorted by key, excluding `sign` and `sign_type`, joined as
