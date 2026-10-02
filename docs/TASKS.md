@@ -241,27 +241,36 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
 
 Goal: the suite that makes the hackathon demo credible.
 
-- [ ] **T7.1** `[M]` Crypto test suite to high coverage, including failure
+- [x] **T7.1** `[M]` Crypto test suite to high coverage, including failure
   paths (`moon coverage analyze` to check gaps).
   **Done when:** uncovered lines in `crypto` are justified or tested.
-- [ ] **T7.2** `[M]` Mocked-transport suites for both clients: golden auth
+  **Outcome:** 16 -> 10 uncovered lines, all justified: 4 lines are catch
+  fallbacks unreachable after earlier guards (the AES key length is
+  pre-checked before `Cipher::new`; `/dev/urandom` open/read failures
+  cannot be simulated deterministically), 5 lines are deep PKCS#8/SPKI
+  parse fallbacks behind the ASN.1 library (its own suite covers those),
+  and 1 line is a PEM catch row already exercised via its raised value.
+  New tests: EC public keys and certificates, broken PKCS#8 inner DER,
+  empty/non-OID algorithm identifiers, sub-tag GCM ciphertext, per-variant
+  error rendering.
+- [x] **T7.2** `[M]` Mocked-transport suites for both clients: golden auth
   headers, response parsing, and provider-error mapping.
   **Done when:** each public client method has at least one happy-path and
   one error-path test.
-- [ ] **T7.3** `[L]` End-to-end loopback test.
+- [x] **T7.3** `[L]` End-to-end loopback test.
   Run local mock provider servers on `async/http`: WeChat flow = create order
   → post a signed callback → verify + decrypt → ack; Alipay flow = notify
   form → verify → ack. All signed with `test_keys/` material.
   **Done when:** both flows pass as `moon test` cases.
-- [ ] **T7.4** `[S]` Security negatives: replayed callback (stale timestamp),
+- [x] **T7.4** `[S]` Security negatives: replayed callback (stale timestamp),
   unknown serial, tampered signature or body, wrong APIv3 key, and Alipay
   amount mismatch — each rejected with a distinct, clear error.
   **Done when:** each case has a test.
-- [ ] **T7.5** `[S]` Hygiene pass: `moon fmt`, `moon info` clean; `.mbti`
+- [x] **T7.5** `[S]` Hygiene pass: `moon fmt`, `moon info` clean; `.mbti`
   files reviewed as the public API surface; no stray TODO/FIXME in public
   APIs.
   **Done when:** `git diff` after `moon info && moon fmt` is empty.
-- [ ] **T7.6** `[S]` `(optional)` Sandbox check script, guarded by
+- [x] **T7.6** `[S]` `(optional)` Sandbox check script, guarded by
   environment variables, plus docs on running it with real sandbox
   credentials.
 

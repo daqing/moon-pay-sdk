@@ -27,7 +27,7 @@ async test "http transport round-trips against a local server" {
         allow_failure=true,
       )
     })
-    let client : &Transport = HttpClient::new()
+    let client : &@transport.Transport = @transport.HttpClient::new()
     let response = client.send({
       meth: Post,
       url: "http://127.0.0.1:\{port}/v3/pay/transactions/native",
@@ -42,14 +42,14 @@ async test "http transport round-trips against a local server" {
 
 ///|
 async test "mock transport records requests and scripts responses" {
-  let mock = MockTransport::new([
+  let mock = @transport.MockTransport::new([
     {
       status: 200,
       headers: [("Content-Type", "application/json")],
       body: b"{}",
     },
   ])
-  let transport : &Transport = mock
+  let transport : &@transport.Transport = mock
   let response = transport.send({
     meth: Get,
     url: "https://api.mch.weixin.qq.com/v3/certificates",

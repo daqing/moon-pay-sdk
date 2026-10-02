@@ -160,7 +160,7 @@ pub async fn Client::query_order(
   let timestamp = format_beijing((self.now_ms)())
   let params = system_params(
     self.config,
-    method="alipay.trade.query",
+    api_method="alipay.trade.query",
     timestamp~,
   )
   params.push(("biz_content", @moon-pay-sdk.encode_json(biz)))
@@ -181,10 +181,14 @@ pub async fn Client::query_order(
     Some(root) => root
     None => raise Network("query response is not valid JSON")
   }
-  let payload = root.value("alipay_trade_query_response")
-  let payload = match payload {
-    Some(payload) => payload
-    None => raise Network("query response has no alipay_trade_query_response")
+  let payload = match root {
+    Object(fields) =>
+      match fields.get("alipay_trade_query_response") {
+        Some(payload) => payload
+        None =>
+          raise Network("query response has no alipay_trade_query_response")
+      }
+    _ => raise Network("query response has no alipay_trade_query_response")
   }
   let code = @moon-pay-sdk.string_field(payload, "code") catch { _ => "" }
   if code != "10000" {

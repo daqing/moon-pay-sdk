@@ -16,12 +16,11 @@ fn mock_client(
 fn query_pairs(url : StringView) -> Array[(String, String)] {
   let pairs : Array[(String, String)] = []
   let text = url.to_owned()
-  let question = text.find("?")
-  let start = match question {
+  let start = match text.find("?") {
     Some(index) => index + 1
     None => 0
   }
-  let rest = text.substring(start~)
+  let rest = text[start:].to_owned()
   for chunk in rest.split("&") {
     let eq = chunk.find("=")
     let eq = match eq {
