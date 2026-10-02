@@ -284,7 +284,7 @@ Goal: the hackathon-ready v0.1.
   print incoming notifications, and reply with the correct acks.
   **Done when:** `moon run` of the example works end-to-end against the mock
   provider from T7.3.
-- [ ] **T8.2** `[S]` Reconcile both READMEs with the shipped API: fix any
+- [x] **T8.2** `[S]` Reconcile both READMEs with the shipped API: fix any
   drifted names, and drop the "target API / work in progress" caveat once
   accurate.
   **Done when:** every README code sample matches the real API; `README.md`
