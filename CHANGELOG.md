@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.1
+
+- Documentation release: both READMEs now compile their code samples against
+  the shipped API, and the runnable payment demo lives in
+  `examples/payment_demo` (`moon run examples/payment_demo`).
+- Adds a bilingual 5-minute demo script, the v0.1.0 release notes and the
+  guarded Alipay sandbox smoke check (`cmd/sandbox`).
+- v0.1.0 itself was already taken on mooncakes.io, hence this version bump.
+
 ## v0.1.0 — hackathon release
 
 The first release of moon-pay-sdk: a native MoonBit SDK covering the core
