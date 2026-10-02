@@ -1,4 +1,6 @@
 import {
+  "moonbitstack/mooncrypt/asn1",
   "moonbitstack/mooncrypt/rsa",
+  "moonbitstack/mooncred/x509",
   "moonbitstack/moonbase/base16",
 }

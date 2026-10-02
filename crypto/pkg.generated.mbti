@@ -1,9 +1,24 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "daqing/moon-pay-sdk/crypto"
 
+import {
+  "moonbitstack/mooncrypt/rsa",
+}
+
 // Values
+pub fn load_private_key_pem(String) -> @rsa.PrivateKey raise CryptoError
+
+pub fn load_public_key_pem(String) -> @rsa.PublicKey raise CryptoError
+
+pub fn public_key_from_spki_der(Bytes) -> @rsa.PublicKey raise CryptoError
 
 // Errors
+pub(all) suberror CryptoError {
+  Malformed(String)
+  Unsupported(String)
+  Operation(String)
+  Random(String)
+}
 
 // Types and methods
 
