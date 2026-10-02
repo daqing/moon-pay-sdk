@@ -177,7 +177,7 @@ Goal: a callback endpoint can trust and parse what WeChat pushes.
   when an unknown serial appears in a callback or response header.
   **Done when:** a mock-transport test covers fetch, decrypt, cache hit, and
   refresh-on-unknown-serial.
-- [ ] **T5.2** `[M]` Callback signature verification.
+- [x] **T5.2** `[M]` Callback signature verification.
   Read `Wechatpay-Serial/-Timestamp/-Nonce/-Signature` headers, verify the
   message `TIMESTAMP\nNONCE\nBODY\n` with the platform public key, and reject
   timestamps older than a configurable window (default 5 minutes) to block

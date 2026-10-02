@@ -36,7 +36,12 @@ pub async fn Client::platform_public_key(
 pub async fn Client::refresh_platform_certs(
   self : Client,
 ) -> Unit raise @moon-pay-sdk.SdkError {
-  let json = self.request_json(meth=Get, path="/v3/certificates", body="")
+  let json = self.request_json(
+    meth=Get,
+    path="/v3/certificates",
+    body="",
+    verify=false,
+  )
   let items = @moon-pay-sdk.array_field(json, "data") catch {
     e => raise Network("certificate list is malformed: \{e}")
   }
