@@ -99,7 +99,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
 - [ ] **T2.8** `[S]` Error mapping: `@spec.Broken`, `@asn1.Refused` and
   base64 failures → typed `CryptoError` values.
   **Done when:** no public function in `crypto` panics or aborts.
-- [ ] **T2.9** `[S]` Test fixtures under `test_keys/` (merchant key pair,
+- [x] **T2.9** `[S]` Test fixtures under `test_keys/` (merchant key pair,
   platform-style self-signed cert) plus a documented openssl command sequence
   to regenerate them.
   **Done when:** fixtures are committed, clearly marked test-only, and
