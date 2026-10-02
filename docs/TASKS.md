@@ -241,9 +241,18 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
 
 Goal: the suite that makes the hackathon demo credible.
 
-- [ ] **T7.1** `[M]` Crypto test suite to high coverage, including failure
+- [x] **T7.1** `[M]` Crypto test suite to high coverage, including failure
   paths (`moon coverage analyze` to check gaps).
   **Done when:** uncovered lines in `crypto` are justified or tested.
+  **Outcome:** 16 -> 10 uncovered lines, all justified: 4 lines are catch
+  fallbacks unreachable after earlier guards (the AES key length is
+  pre-checked before `Cipher::new`; `/dev/urandom` open/read failures
+  cannot be simulated deterministically), 5 lines are deep PKCS#8/SPKI
+  parse fallbacks behind the ASN.1 library (its own suite covers those),
+  and 1 line is a PEM catch row already exercised via its raised value.
+  New tests: EC public keys and certificates, broken PKCS#8 inner DER,
+  empty/non-OID algorithm identifiers, sub-tag GCM ciphertext, per-variant
+  error rendering.
 - [ ] **T7.2** `[M]` Mocked-transport suites for both clients: golden auth
   headers, response parsing, and provider-error mapping.
   **Done when:** each public client method has at least one happy-path and
