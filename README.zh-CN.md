@@ -6,7 +6,7 @@
 
 项目为 MoonBit 黑客松而开发，面向 MoonBit native 后端——没有 JavaScript 桥接，也没有解释器参与运行。从 RSA 请求签名、回调解密到 TLS 传输，全部以原生代码运行，底层依赖 [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async) 和 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt) 的纯 MoonBit 密码学栈。
 
-> **状态**：黑客松开发中的项目。下面的示例展示目标 API；范围与进度见 [Roadmap](#roadmap)。
+> **状态**：v0.1.0 已实现[功能](#功能)所列全部内容；代码示例与发布 API 一致，可编译。
 
 ## 功能
 

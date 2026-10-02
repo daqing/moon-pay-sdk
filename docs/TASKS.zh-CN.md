@@ -161,13 +161,14 @@
 - [ ] **T8.1** `[M]` `examples/` 演示应用。
   (a) 创建微信 Native 订单并打印二维码内容；(b) 起 HTTP 服务器暴露 `/callback/wechat` 和 `/notify/alipay`，对收到的通知验签并打印，按规范应答。
   **完成标准：** 示例能对着 T7.3 的 mock 平台端到端跑通。
-- [ ] **T8.2** `[S]` 用实际 API 校对两份 README：修正有偏差的命名，一旦描述属实就移除"目标 API / 开发中"的提示。
+- [x] **T8.2** `[S]` 用实际 API 校对两份 README：修正有偏差的命名，一旦描述属实就移除"目标 API / 开发中"的提示。
   **完成标准：** README 中每段代码示例都与真实 API 一致；符号链接 `README.md` 展示相同内容。
-- [ ] **T8.3** `[S]` 发布杂项：定稿 `moon.mod` 描述/关键词、发布说明、annotated tag `v0.1.0`（版本号变更与发布准备放进同一个 commit）。
+- [x] **T8.3** `[S]` 发布杂项：定稿 `moon.mod` 描述/关键词、发布说明、annotated tag `v0.1.0`（版本号变更与发布准备放进同一个 commit）。
   **完成标准：** 本地 tag 存在且指向发布提交。
-- [ ] **T8.4** `[S]` `moon publish` 发布到 mooncakes.io。
+- [x] **T8.4** `[S]` `moon publish` 发布到 mooncakes.io。
   **完成标准：** 包页面正确渲染 `README.mbt.md`，且能通过 `moon add` 安装该版本。
-- [ ] **T8.5** `[S]` `(optional)` 黑客松提交用的演示脚本或录屏。
+  **结果：** v0.1.0 已被占用（409），经明确授权后以 **0.1.1** 发布：`moon publish` 返回 200，README 页面在 mooncakes.io 可访问，`moon add daqing/moon-pay-sdk@0.1.1` 可安装（tag `v0.1.1`）。
+- [x] **T8.5** `[S]` `(optional)` 黑客松提交用的演示脚本或录屏。
 
 ## T9 — 延伸 / v0.1 之后
 

@@ -15,7 +15,7 @@ fn main {
   let config = match (app_id, private_key, public_key) {
     (Some(app_id), Some(private_key), Some(public_key)) =>
       @alipay.Config::new(
-        app_id=app_id,
+        app_id~,
         private_key_pem=private_key,
         alipay_public_key_pem=public_key,
         gateway_url="https://openapi-sandbox.dl.alipaydev.com/gateway.do",
@@ -28,7 +28,7 @@ fn main {
     }
   }
   let client = @alipay.Client::new(
-    config=config,
+    config~,
     transport=@transport.HttpClient::new(),
   ) catch {
     e => {

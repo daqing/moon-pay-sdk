@@ -284,19 +284,23 @@ Goal: the hackathon-ready v0.1.
   print incoming notifications, and reply with the correct acks.
   **Done when:** `moon run` of the example works end-to-end against the mock
   provider from T7.3.
-- [ ] **T8.2** `[S]` Reconcile both READMEs with the shipped API: fix any
+- [x] **T8.2** `[S]` Reconcile both READMEs with the shipped API: fix any
   drifted names, and drop the "target API / work in progress" caveat once
   accurate.
   **Done when:** every README code sample matches the real API; `README.md`
   (symlink) shows the same content.
-- [ ] **T8.3** `[S]` Release chores: final `moon.mod` description/keywords,
+- [x] **T8.3** `[S]` Release chores: final `moon.mod` description/keywords,
   release notes, annotated tag `v0.1.0` (version file changes go in the same
   commit as the release prep).
   **Done when:** tag exists locally and points at the release commit.
-- [ ] **T8.4** `[S]` `moon publish` to mooncakes.io.
+- [x] **T8.4** `[S]` `moon publish` to mooncakes.io.
   **Done when:** the package page renders `README.mbt.md` correctly and the
   version is installable via `moon add`.
-- [ ] **T8.5** `[S]` `(optional)` Demo script or recording for the hackathon
+  **Outcome:** v0.1.0 was already taken (409), so the release shipped as
+  **0.1.1** after an explicit go-ahead: `moon publish` returned 200, the
+  README page responds on mooncakes.io, and `moon add
+  daqing/moon-pay-sdk@0.1.1` installs the package (tag `v0.1.1`).
+- [x] **T8.5** `[S]` `(optional)` Demo script or recording for the hackathon
   submission.
 
 ## T9 — Stretch / post-v0.1

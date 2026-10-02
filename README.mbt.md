@@ -14,8 +14,8 @@ code built on [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/asyn
 and the pure-MoonBit cryptography of
 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt).
 
-> **Status**: work in progress for the hackathon. The examples below show the
-> target API; see [Roadmap](#roadmap) for scope and progress.
+> **Status**: v0.1.0 implements everything under [Features](#features); the
+> code samples compile against the shipped API.
 
 ## Features
 
@@ -75,25 +75,30 @@ import {
 ///|
 async fn main {
   let wechat = @wechat.Client::new(
-    appid="wx8888888888888888",
-    mchid="1900000000",
-    serial_no="YOUR-CERT-SERIAL",
-    private_key_path="apiclient_key.pem",
-    api_v3_key="YOUR-API-V3-KEY",
+    config=@wechat.Config::new(
+      appid="wx8888888888888888",
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // PEM text, loaded once at startup
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
   )
 
-  // Native payment: render order.code_url as a QR code.
+  // Native payment: render order.code_url() as a QR code.
   let order = wechat.native_order(
     out_trade_no="hackathon-20261001-0001",
     total=100, // in fen: 100 = CNY 1.00
     description="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/wechat",
   )
-  println("QR content: \{order.code_url}")
+  println("QR content: \{order.code_url()}")
 
   // Callbacks can get lost — query to reconcile.
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
-  println(paid.trade_state) // "SUCCESS", "NOTPAY", ...
+  if paid.trade_state() is @wechat.Success {
+    println("paid \{paid.total_fen()} fen")
+  }
 }
 ```
 
@@ -124,15 +129,18 @@ async fn handle_wechat_callback(
 ///|
 async fn main {
   let alipay = @alipay.Client::new(
-    app_id="2021000000000000",
-    private_key_path="app_private_key.pem", // your application private key
-    alipay_public_key_path="alipay_public_key.pem", // for verifying notifications
+    config=@alipay.Config::new(
+      app_id="2021000000000000",
+      private_key_pem~, // your application private key, PEM
+      alipay_public_key_pem~, // for verifying notifications
+    ),
+    transport=@transport.HttpClient::new(),
   )
 
   // Desktop website checkout: redirect the customer to this URL.
   let url = alipay.page_pay_url(
     out_trade_no="hackathon-20261001-0002",
-    total_amount="88.00", // CNY, two decimal places
+    total_fen=8800, // 8800 fen = CNY 88.00
     subject="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/alipay",
     return_url="https://example.com/thanks",
@@ -142,7 +150,7 @@ async fn main {
   // Mobile website checkout works the same way.
   let wap_url = alipay.wap_pay_url(
     out_trade_no="hackathon-20261001-0003",
-    total_amount="88.00",
+    total_fen=8800,
     subject="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/alipay",
   )
@@ -155,14 +163,16 @@ async fn main {
 ///|
 async fn handle_alipay_notify(
   alipay : @alipay.Client,
-  params : Map[String, String], // the parsed form body of the POST
-) {
-  // Verifies the RSA2 signature over the notification parameters.
-  let notify = alipay.verify_notify(params)
-  if notify.trade_status == "TRADE_SUCCESS" {
-    // Payment confirmed — update your own order storage here.
+  form : Array[(String, String)], // the urlencoded body of the POST
+) -> String {
+  // Verifies the RSA2 signature, then the app_id ownership.
+  let notify = alipay.verify_notify(form)
+  if notify.trade_status() is @alipay.TradeSuccess
+    && notify.amount_matches(8800) {
+    // Signed, from Alipay, and the amount matches — mark the order paid.
   }
   // Respond with the plain text "success" so Alipay stops retrying.
+  @alipay.ack_success()
 }
 ```
 
