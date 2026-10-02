@@ -1,0 +1,8 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/core/env",
+  "daqing/moon-pay-sdk/alipay",
+  "daqing/moon-pay-sdk/transport",
+}
+
+pkgtype(kind: "executable")
