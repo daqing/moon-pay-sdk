@@ -115,7 +115,7 @@ Goal: transport and parsing plumbing shared by both providers.
   scriptable mock for tests. Clients must depend on the interface, not on
   concrete HTTP calls, so everything later can be tested offline.
   **Done when:** a request against a local loopback server round-trips.
-- [ ] **T3.2** `[S]` JSON helpers built on core `@json`.
+- [x] **T3.2** `[S]` JSON helpers built on core `@json`.
   Typed encode/decode helpers with useful error messages.
   **Done when:** round-trip unit tests pass, including malformed-input
   errors.

@@ -2,8 +2,26 @@
 package "daqing/moon-pay-sdk"
 
 // Values
+pub fn array_field(Json, String) -> Array[Json] raise JsonError
+
+pub fn bool_field(Json, String) -> Bool raise JsonError
+
+pub fn encode_json(Json) -> String
+
+pub fn int_field(Json, String) -> Int raise JsonError
+
+pub fn object_field(Json, String) -> Json raise JsonError
+
+pub fn parse_json(StringView) -> Json raise JsonError
+
+pub fn string_field(Json, String) -> String raise JsonError
 
 // Errors
+pub(all) suberror JsonError {
+  Invalid(String)
+  Missing(String)
+  WrongType(String, String)
+}
 
 // Types and methods
 
