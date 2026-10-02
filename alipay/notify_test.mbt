@@ -62,7 +62,7 @@ async test "a tampered notification amount fails verification" {
   } noraise {
     _ => "no error raised"
   }
-  assert_eq(verdict, "notification signature verification failed")
+  assert_eq(verdict, "signature verification failed")
 }
 
 ///|
@@ -77,7 +77,8 @@ async test "a notification for another app_id is rejected" {
     _ => "no error raised"
   }
   assert_eq(
-    verdict, "notification app_id \"2021999999999999\" does not match this client",
+    verdict,
+    "parameters carry app_id \"2021999999999999\" which does not match this client",
   )
 }
 

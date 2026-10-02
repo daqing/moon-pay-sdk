@@ -78,23 +78,9 @@ pub fn Client::verify_notify(
   self : Client,
   form : Array[(String, String)],
 ) -> NotifyResult raise @moon-pay-sdk.SdkError {
-  let decoded : Array[(String, String)] = []
-  for pair in form {
-    decoded.push((percent_decode(pair.0), percent_decode(pair.1)))
-  }
+  let decoded = decode_form(form)
+  self.verify_signed_params(decoded)
   let signature = lookup_param(decoded, "sign")
-  if signature == "" {
-    raise Network("notification carries no signature")
-  }
-  if !self.verify_signature(decoded, signature[:]) {
-    raise Network("notification signature verification failed")
-  }
-  let app_id = lookup_param(decoded, "app_id")
-  if app_id != self.config.app_id {
-    raise Network(
-      "notification app_id \"\{app_id}\" does not match this client",
-    )
-  }
   let total_amount = lookup_param(decoded, "total_amount")
   {
     trade_status: trade_status_of(lookup_param(decoded, "trade_status")),
@@ -102,13 +88,59 @@ pub fn Client::verify_notify(
     trade_no: lookup_param(decoded, "trade_no"),
     total_amount,
     total_fen: @moon-pay-sdk.parse_yuan_fen(total_amount),
-    app_id,
-    seller_id: match lookup_param(decoded, "seller_id") {
+    app_id: lookup_param(decoded, "app_id"),
+    seller_id: (match lookup_param(decoded, "seller_id") {
       "" => None
       value => Some(value)
-    },
+    }),
     raw: decoded,
   }
+}
+
+///|
+fn decode_form(
+  form : Array[(String, String)],
+) -> Array[(String, String)] raise @moon-pay-sdk.SdkError {
+  let decoded : Array[(String, String)] = []
+  for pair in form {
+    decoded.push((percent_decode(pair.0), percent_decode(pair.1)))
+  }
+  decoded
+}
+
+///|
+/// The shared ownership check behind notifications and return redirects:
+/// signature first, then the app_id this client answers for.
+fn Client::verify_signed_params(
+  self : Client,
+  decoded : Array[(String, String)],
+) -> Unit raise @moon-pay-sdk.SdkError {
+  let signature = lookup_param(decoded, "sign")
+  if signature == "" {
+    raise Network("signed parameters carry no signature")
+  }
+  if !self.verify_signature(decoded, signature[:]) {
+    raise Network("signature verification failed")
+  }
+  let app_id = lookup_param(decoded, "app_id")
+  if app_id != self.config.app_id {
+    raise Network(
+      "parameters carry app_id \"\{app_id}\" which does not match this client",
+    )
+  }
+}
+
+///|
+/// Verify the signed parameters Alipay appends to the `return_url` redirect
+/// (a GET query string, same canonical rules as notifications). Returns the
+/// decoded parameters so the caller can read e.g. `out_trade_no`.
+pub fn Client::verify_return_params(
+  self : Client,
+  query : StringView,
+) -> Array[(String, String)] raise @moon-pay-sdk.SdkError {
+  let decoded = decode_form(parse_form_params(query))
+  self.verify_signed_params(decoded)
+  decoded
 }
 
 ///|
