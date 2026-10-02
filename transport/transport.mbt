@@ -32,6 +32,20 @@ pub(all) suberror TransportError {
 }
 
 ///|
+pub impl Show for TransportError with fn output(
+  self : TransportError,
+  logger : &Logger,
+) -> Unit {
+  match self {
+    Network(detail) => logger.write_string("network: \{detail}")
+    Protocol(detail) => logger.write_string("protocol: \{detail}")
+  }
+}
+
+///|
+pub extend TransportError with Show::{output, to_string}
+
+///|
 /// The HTTP boundary of the SDK. Clients depend on this interface, never on
 /// concrete HTTP calls, so every client behaviour is testable offline against
 /// a mock.

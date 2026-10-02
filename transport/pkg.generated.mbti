@@ -8,6 +8,9 @@ pub(all) suberror TransportError {
   Network(String)
   Protocol(String)
 }
+pub fn TransportError::output(Self, &Logger) -> Unit
+pub fn TransportError::to_string(Self) -> String
+pub impl Show for TransportError
 
 // Types and methods
 pub struct HttpClient {

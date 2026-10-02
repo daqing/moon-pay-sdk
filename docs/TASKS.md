@@ -143,7 +143,7 @@ offline against the mock transport.
   `nonce_str`, `signature`.
   **Done when:** a golden-vector test matches a reference signature produced
   by `openssl`.
-- [ ] **T4.2** `[M]` Native order: `POST /v3/pay/transactions/native`
+- [x] **T4.2** `[M]` Native order: `POST /v3/pay/transactions/native`
   (appid, mchid, description, out_trade_no, notify_url, `amount.total` in
   fen) → `code_url` for the QR code.
   **Done when:** a mock-transport test asserts the request JSON and headers
