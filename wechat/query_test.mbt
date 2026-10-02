@@ -47,7 +47,7 @@ async test "all documented trade states are recognized" {
   let states : Array[String] = [
     "SUCCESS", "REFUND", "NOTPAY", "CLOSED", "REVOKED", "USERPAYING", "PAYERROR",
   ]
-  let expected : Array[TradeState] = [
+  let expected : Array[@wechat.TradeState] = [
     Success,
     Refund,
     NotPay,

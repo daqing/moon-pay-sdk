@@ -53,13 +53,6 @@ fn app_private_key() -> @rsa.PrivateKey {
 }
 
 ///|
-fn alipay_public_key() -> @rsa.PublicKey {
-  @crypto.load_public_key_pem(alipay_public_key_pem) catch {
-    e => abort("fixture key must load: \{e}")
-  }
-}
-
-///|
 fn alipay_config() -> @alipay.Config {
   @alipay.Config::new(
     app_id="2021000000000000",
@@ -121,7 +114,7 @@ test "timestamps render as Beijing time" {
 test "system params carry the fixed fields plus optional urls" {
   let params = @alipay.system_params(
     alipay_config(),
-    method="alipay.trade.query",
+    api_method="alipay.trade.query",
     timestamp="2026-10-02 08:00:00",
   )
   let lookup = fn(key : String) -> String {

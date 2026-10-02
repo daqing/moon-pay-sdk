@@ -86,7 +86,7 @@ fn parse_int64(text : StringView) -> Int64? {
   let mut rest = text
   if rest.has_prefix("-") {
     negative = true
-    rest = rest.substring(start=1)
+    rest = rest[1:].to_owned()
   }
   let mut value : Int64 = 0L
   for ch in rest {

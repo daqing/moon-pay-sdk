@@ -100,6 +100,7 @@ fn detail_mentions_replay(detail : String) -> Bool {
 ///|
 async test "callbacks missing a header set are rejected" {
   let (client, _) = mock_client([certs_response()])
+  let _use = client
   let headers = signed_callback_headers("1600000000", "cb-nonce", "{}")
   let partial : Array[(String, String)] = []
   for i in 0..<(headers.length() - 1) {

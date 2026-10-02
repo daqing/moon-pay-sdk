@@ -100,12 +100,12 @@ async test "wechat rejects a notification encrypted under the wrong key" {
   ) catch {
     _ => abort("gcm must init")
   }
-  let sealed = cipher.seal(
+  let sealed_bytes = cipher.seal(
     nonce=b"abc123def456",
     plain=@utf8.encode(wrong_key_resource)[:],
     aad=@utf8.encode("transaction")[:],
   )
-  let ciphertext_b64 = @base64.encode(sealed[:])
+  let ciphertext_b64 = @base64.encode(sealed_bytes[:])
   let text = "{\"id\":\"evt-e2e\",\"event_type\":\"TRANSACTION.SUCCESS\",\"resource_type\":\"encrypt-resource\",\"resource\":{\"algorithm\":\"AEAD_AES_256_GCM\",\"ciphertext\":\"" +
     ciphertext_b64 +
     "\",\"nonce\":\"abc123def456\",\"associated_data\":\"transaction\"}}"

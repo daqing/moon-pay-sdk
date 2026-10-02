@@ -120,14 +120,14 @@ fn pad2(value : Int64) -> String {
 /// The system parameters every Alipay request carries (without `sign`).
 pub fn system_params(
   config : Config,
-  method~ : String,
+  api_method~ : String,
   timestamp~ : String,
   notify_url? : String? = None,
   return_url? : String? = None,
 ) -> Array[(String, String)] {
   let params : Array[(String, String)] = [
     ("app_id", config.app_id),
-    ("method", method),
+    ("method", api_method),
     ("format", "JSON"),
     ("charset", "utf-8"),
     ("sign_type", "RSA2"),
