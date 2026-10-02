@@ -8,6 +8,8 @@ import {
 }
 
 // Values
+pub fn ack_success() -> String
+
 pub fn build_pay_url(Config, Array[(String, String)], String) -> String
 
 pub fn build_sign_content(Array[(String, String)]) -> String
@@ -38,6 +40,7 @@ pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms?
 pub async fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
 pub fn Client::verify_notify(Self, Array[(String, String)]) -> NotifyResult raise @moon-pay-sdk.SdkError
+pub fn Client::verify_return_params(Self, StringView) -> Array[(String, String)] raise @moon-pay-sdk.SdkError
 pub fn Client::verify_signature(Self, Array[(String, String)], StringView) -> Bool
 pub async fn Client::wap_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String) -> String raise @moon-pay-sdk.SdkError
 

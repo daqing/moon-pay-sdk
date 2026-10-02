@@ -89,10 +89,10 @@ pub fn Client::verify_notify(
     total_amount,
     total_fen: @moon-pay-sdk.parse_yuan_fen(total_amount),
     app_id: lookup_param(decoded, "app_id"),
-    seller_id: (match lookup_param(decoded, "seller_id") {
+    seller_id: match lookup_param(decoded, "seller_id") {
       "" => None
       value => Some(value)
-    }),
+    },
     raw: decoded,
   }
 }

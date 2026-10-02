@@ -234,7 +234,7 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
 - [ ] **T6.7** `[S]` Ack helper: respond with the plain text `success` —
   anything else makes Alipay retry.
   **Done when:** unit test pins the exact body.
-- [ ] **T6.8** `[S]` `(optional)` `return_url` GET-parameter verification for
+- [x] **T6.8** `[S]` `(optional)` `return_url` GET-parameter verification for
   page-pay returns, reusing the T6.6 verify path.
 
 ## T7 — Testing & hardening
