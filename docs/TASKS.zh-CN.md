@@ -84,7 +84,7 @@
 
 目标：三个服务端 API，请求签名正确，全部可离线对接 mock 传输测试。
 
-- [ ] **T4.1** `[M]` 请求签名与 `Authorization` 头。
+- [x] **T4.1** `[M]` 请求签名与 `Authorization` 头。
   规范串：`METHOD\nPATH?QUERY\nTIMESTAMP\nNONCE\nBODY\n`，方案 `WECHATPAY2-SHA256-RSA2048`，携带 `mchid`、`serial_no`、`timestamp`、`nonce_str`、`signature`。
   **完成标准：** golden vector 测试与 `openssl` 生成的参考签名一致。
 - [ ] **T4.2** `[M]` Native 下单：`POST /v3/pay/transactions/native`（appid、mchid、description、out_trade_no、notify_url、`amount.total` 单位分）→ 返回 `code_url` 用于生成二维码。

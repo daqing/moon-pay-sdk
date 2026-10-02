@@ -1,3 +1,7 @@
 import {
   "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/crypto",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitstack/moonbase/base64",
+  "moonbitstack/mooncrypt/rsa",
 }

@@ -137,7 +137,7 @@ Goal: transport and parsing plumbing shared by both providers.
 Goal: the three server APIs with correctly signed requests, testable fully
 offline against the mock transport.
 
-- [ ] **T4.1** `[M]` Request signing and `Authorization` header.
+- [x] **T4.1** `[M]` Request signing and `Authorization` header.
   Canonical message: `METHOD\nPATH?QUERY\nTIMESTAMP\nNONCE\nBODY\n`,
   scheme `WECHATPAY2-SHA256-RSA2048` with `mchid`, `serial_no`, `timestamp`,
   `nonce_str`, `signature`.

@@ -3,9 +3,15 @@ package "daqing/moon-pay-sdk/wechat"
 
 import {
   "daqing/moon-pay-sdk",
+  "moonbitstack/mooncrypt/rsa",
 }
 
 // Values
+pub fn authorization_header(Config, @rsa.PrivateKey, meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
+
+pub fn build_sign_message(meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
+
+pub fn sign_request(@rsa.PrivateKey, StringView) -> String
 
 // Errors
 
