@@ -293,14 +293,13 @@ Goal: the hackathon-ready v0.1.
   release notes, annotated tag `v0.1.0` (version file changes go in the same
   commit as the release prep).
   **Done when:** tag exists locally and points at the release commit.
-- [ ] **T8.4** `[S]` `moon publish` to mooncakes.io.
+- [x] **T8.4** `[S]` `moon publish` to mooncakes.io.
   **Done when:** the package page renders `README.mbt.md` correctly and the
   version is installable via `moon add`.
-  **Blocked, needs a decision:** `moon publish --dry-run` passes packaging
-  ("Check passed"), but the registry rejects v0.1.0 with 409 — the version
-  already exists on mooncakes.io. Publishing requires bumping the version
-  (e.g. 0.1.1) in `moon.mod` and an explicit go-ahead, since publishing is an
-  external, irreversible action.
+  **Outcome:** v0.1.0 was already taken (409), so the release shipped as
+  **0.1.1** after an explicit go-ahead: `moon publish` returned 200, the
+  README page responds on mooncakes.io, and `moon add
+  daqing/moon-pay-sdk@0.1.1` installs the package (tag `v0.1.1`).
 - [x] **T8.5** `[S]` `(optional)` Demo script or recording for the hackathon
   submission.
 
