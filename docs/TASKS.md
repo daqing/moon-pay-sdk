@@ -266,7 +266,7 @@ Goal: the suite that makes the hackathon demo credible.
   unknown serial, tampered signature or body, wrong APIv3 key, and Alipay
   amount mismatch — each rejected with a distinct, clear error.
   **Done when:** each case has a test.
-- [ ] **T7.5** `[S]` Hygiene pass: `moon fmt`, `moon info` clean; `.mbti`
+- [x] **T7.5** `[S]` Hygiene pass: `moon fmt`, `moon info` clean; `.mbti`
   files reviewed as the public API surface; no stray TODO/FIXME in public
   APIs.
   **Done when:** `git diff` after `moon info && moon fmt` is empty.
