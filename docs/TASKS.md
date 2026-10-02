@@ -156,8 +156,16 @@ offline against the mock transport.
   REVOKED, USERPAYING, PAYERROR), amounts, and transaction id.
   **Done when:** all states and the `ORDER_NOT_EXIST` error mapping are
   tested.
-- [ ] **T4.5** `[S]` `(optional)` API response signature verification using
+- [x] **T4.5** `[S]` `(optional)` API response signature verification using
   platform certificates (needs T5.1). Document the tradeoff if deferred.
+  **Deferred to the T5 phase, right after T5.1 lands.** Tradeoff: response
+  verification needs the platform-certificate manager (fetch, decrypt,
+  cache), which is the first task of T5; wiring it into `request_json` is
+  planned immediately after. In the meantime every request rides TLS, and
+  the trust anchor for payment success is the verified callback (T5.2/T5.3)
+  rather than the synchronous response, so the unverified window does not
+  affect the charge decision; API response verification then closes the gap
+  as defense in depth.
 
 ## T5 — WeChat callback handling
 
