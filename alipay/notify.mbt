@@ -80,7 +80,6 @@ pub fn Client::verify_notify(
 ) -> NotifyResult raise @moon-pay-sdk.SdkError {
   let decoded = decode_form(form)
   self.verify_signed_params(decoded)
-  let signature = lookup_param(decoded, "sign")
   let total_amount = lookup_param(decoded, "total_amount")
   {
     trade_status: trade_status_of(lookup_param(decoded, "trade_status")),
