@@ -36,6 +36,9 @@ pub(all) suberror CryptoError {
   Operation(String)
   Random(String)
 }
+pub fn CryptoError::output(Self, &Logger) -> Unit
+pub fn CryptoError::to_string(Self) -> String
+pub impl Show for CryptoError
 
 // Types and methods
 

@@ -1,11 +1,23 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "daqing/moon-pay-sdk/alipay"
 
+import {
+  "daqing/moon-pay-sdk",
+}
+
 // Values
 
 // Errors
 
 // Types and methods
+pub(all) struct Config {
+  app_id : String
+  private_key_pem : String
+  alipay_public_key_pem : String
+  gateway_url : String
+}
+pub fn Config::new(app_id~ : String, private_key_pem~ : String, alipay_public_key_pem~ : String, gateway_url? : String) -> Self
+pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
 
 // Type aliases
 

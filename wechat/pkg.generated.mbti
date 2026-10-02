@@ -1,11 +1,25 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "daqing/moon-pay-sdk/wechat"
 
+import {
+  "daqing/moon-pay-sdk",
+}
+
 // Values
 
 // Errors
 
 // Types and methods
+pub(all) struct Config {
+  appid : String
+  mchid : String
+  serial_no : String
+  private_key_pem : String
+  api_v3_key : String
+  base_url : String
+}
+pub fn Config::new(appid~ : String, mchid~ : String, serial_no~ : String, private_key_pem~ : String, api_v3_key~ : String, base_url? : String) -> Self
+pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
 
 // Type aliases
 

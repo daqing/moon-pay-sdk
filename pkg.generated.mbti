@@ -1,11 +1,59 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "daqing/moon-pay-sdk"
 
+import {
+  "daqing/moon-pay-sdk/crypto",
+}
+
 // Values
+pub fn array_field(Json, String) -> Array[Json] raise JsonError
+
+pub fn bool_field(Json, String) -> Bool raise JsonError
+
+pub fn encode_json(Json) -> String
+
+pub fn format_yuan(Int) -> String raise SdkError
+
+pub fn int_field(Json, String) -> Int raise JsonError
+
+pub fn object_field(Json, String) -> Json raise JsonError
+
+pub fn parse_json(StringView) -> Json raise JsonError
+
+pub fn parse_yuan_fen(StringView) -> Int raise SdkError
+
+pub fn string_field(Json, String) -> String raise JsonError
+
+pub fn validate_alipay_out_trade_no(StringView) -> Unit raise SdkError
+
+pub fn validate_amount_fen(Int) -> Unit raise SdkError
+
+pub fn validate_wechat_out_trade_no(StringView) -> Unit raise SdkError
 
 // Errors
+pub(all) suberror JsonError {
+  Invalid(String)
+  Missing(String)
+  WrongType(String, String)
+}
+
+pub(all) suberror SdkError {
+  Api(ApiError)
+  Network(String)
+  Crypto(@crypto.CryptoError)
+  Config(String)
+}
+pub fn SdkError::output(Self, &Logger) -> Unit
+pub fn SdkError::to_string(Self) -> String
+pub impl Show for SdkError
 
 // Types and methods
+pub(all) struct ApiError {
+  code : String
+  message : String
+  http_status : Int?
+}
+pub fn ApiError::new(code~ : String, message~ : String, http_status? : Int?) -> Self
 
 // Type aliases
 

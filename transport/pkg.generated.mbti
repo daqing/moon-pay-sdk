@@ -1,0 +1,52 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "daqing/moon-pay-sdk/transport"
+
+// Values
+
+// Errors
+pub(all) suberror TransportError {
+  Network(String)
+  Protocol(String)
+}
+
+// Types and methods
+pub struct HttpClient {
+}
+pub fn HttpClient::new() -> Self
+pub async fn HttpClient::send(Self, Request) -> Response raise TransportError
+pub impl Transport for HttpClient
+
+pub(all) enum Method {
+  Get
+  Post
+}
+
+pub(all) struct MockTransport {
+  responses : Array[Response]
+  requests : Array[Request]
+}
+pub fn MockTransport::new(Array[Response]) -> Self
+pub fn MockTransport::recorded(Self) -> Array[Request]
+pub async fn MockTransport::send(Self, Request) -> Response raise TransportError
+pub fn MockTransport::unused_responses(Self) -> Int
+pub impl Transport for MockTransport
+
+pub(all) struct Request {
+  meth : Method
+  url : String
+  headers : Array[(String, String)]
+  body : Bytes
+}
+
+pub(all) struct Response {
+  status : Int
+  headers : Array[(String, String)]
+  body : Bytes
+}
+
+// Type aliases
+
+// Traits
+pub(open) trait Transport {
+  async fn send(Self, Request) -> Response raise TransportError
+}
