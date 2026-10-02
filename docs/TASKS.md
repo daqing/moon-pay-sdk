@@ -257,7 +257,7 @@ Goal: the suite that makes the hackathon demo credible.
   headers, response parsing, and provider-error mapping.
   **Done when:** each public client method has at least one happy-path and
   one error-path test.
-- [ ] **T7.3** `[L]` End-to-end loopback test.
+- [x] **T7.3** `[L]` End-to-end loopback test.
   Run local mock provider servers on `async/http`: WeChat flow = create order
   → post a signed callback → verify + decrypt → ack; Alipay flow = notify
   form → verify → ack. All signed with `test_keys/` material.
