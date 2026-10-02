@@ -204,37 +204,37 @@ Goal: a callback endpoint can trust and parse what WeChat pushes.
 
 Goal: signed redirect URLs, order query, and trusted async notifications.
 
-- [ ] **T6.1** `[M]` Parameter engine.
+- [x] **T6.1** `[M]` Parameter engine.
   System params (app_id, method, format, charset, sign_type=RSA2, timestamp,
   version, notify_url / return_url) plus `biz_content` JSON; canonical
   string = params sorted by key, excluding `sign` and `sign_type`, joined as
   `k=v&`; RSA2 signature.
   **Done when:** golden-vector tests pin the canonical string and signature.
-- [ ] **T6.2** `[S]` Redirect URL builder with percent-encoding for the
+- [x] **T6.2** `[S]` Redirect URL builder with percent-encoding for the
   `gateway.do` GET flow.
   **Done when:** encoding unit tests pass.
-- [ ] **T6.3** `[M]` `page_pay_url` (`alipay.trade.page.pay`) — desktop
+- [x] **T6.3** `[M]` `page_pay_url` (`alipay.trade.page.pay`) — desktop
   website checkout, matching the README example.
   **Done when:** the generated URL's signature validates with the Alipay
   public key (verify via sandbox or the official signature-check tool).
-- [ ] **T6.4** `[S]` `wap_pay_url` (`alipay.trade.wap.pay`) — mobile website
+- [x] **T6.4** `[S]` `wap_pay_url` (`alipay.trade.wap.pay`) — mobile website
   checkout.
   **Done when:** same validation as T6.3.
-- [ ] **T6.5** `[M]` Order query (`alipay.trade.query`): POST form to the
+- [x] **T6.5** `[M]` Order query (`alipay.trade.query`): POST form to the
   gateway, verify the response `sign`, map `trade_status` (WAIT_BUYER_PAY,
   TRADE_CLOSED, TRADE_SUCCESS, TRADE_FINISHED).
   **Done when:** mock tests cover all states and error mapping
   (e.g. ACQ.TRADE_NOT_EXIST).
-- [ ] **T6.6** `[M]` Async notification verification.
+- [x] **T6.6** `[M]` Async notification verification.
   Parse the posted form params, RSA2-verify (excluding `sign`/`sign_type`),
   and produce a typed `NotifyResult` (trade_status, out_trade_no, trade_no,
   total_amount, app_id, seller_id) plus an amount-matching helper so apps
   can confirm the notification matches the local order.
   **Done when:** valid, tampered, and wrong-app-id notifications are tested.
-- [ ] **T6.7** `[S]` Ack helper: respond with the plain text `success` —
+- [x] **T6.7** `[S]` Ack helper: respond with the plain text `success` —
   anything else makes Alipay retry.
   **Done when:** unit test pins the exact body.
-- [ ] **T6.8** `[S]` `(optional)` `return_url` GET-parameter verification for
+- [x] **T6.8** `[S]` `(optional)` `return_url` GET-parameter verification for
   page-pay returns, reusing the T6.6 verify path.
 
 ## T7 — Testing & hardening
