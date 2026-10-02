@@ -129,7 +129,7 @@
   **完成标准：** 同 T6.3 的验证方式。
 - [x] **T6.5** `[M]` 查单（`alipay.trade.query`）：POST 表单到网关，验证响应 `sign`，映射 `trade_status`（WAIT_BUYER_PAY、TRADE_CLOSED、TRADE_SUCCESS、TRADE_FINISHED）。
   **完成标准：** mock 测试覆盖全部状态与错误映射（如 ACQ.TRADE_NOT_EXIST）。
-- [ ] **T6.6** `[M]` 异步通知验签。
+- [x] **T6.6** `[M]` 异步通知验签。
   解析 POST 表单参数，RSA2 验签（排除 `sign`/`sign_type`），产出类型化 `NotifyResult`（trade_status、out_trade_no、trade_no、total_amount、app_id、seller_id），并提供金额比对辅助函数，让业务侧能确认通知与本地订单一致。
   **完成标准：** 有效、被篡改、app_id 伪造的通知均有测试。
 - [ ] **T6.7** `[S]` 应答辅助：返回纯文本 `success`——其他任何内容都会导致支付宝重试。

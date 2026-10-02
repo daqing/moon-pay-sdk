@@ -225,7 +225,7 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
   TRADE_CLOSED, TRADE_SUCCESS, TRADE_FINISHED).
   **Done when:** mock tests cover all states and error mapping
   (e.g. ACQ.TRADE_NOT_EXIST).
-- [ ] **T6.6** `[M]` Async notification verification.
+- [x] **T6.6** `[M]` Async notification verification.
   Parse the posted form params, RSA2-verify (excluding `sign`/`sign_type`),
   and produce a typed `NotifyResult` (trade_status, out_trade_no, trade_no,
   total_amount, app_id, seller_id) plus an amount-matching helper so apps

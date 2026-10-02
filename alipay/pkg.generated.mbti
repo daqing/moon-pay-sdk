@@ -14,6 +14,8 @@ pub fn build_sign_content(Array[(String, String)]) -> String
 
 pub fn format_beijing(Int64) -> String
 
+pub fn parse_form_params(StringView) -> Array[(String, String)]
+
 pub fn percent_decode(StringView) -> String raise @moon-pay-sdk.SdkError
 
 pub fn percent_encode(StringView) -> String
@@ -35,6 +37,7 @@ pub struct Client {
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
 pub async fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
+pub fn Client::verify_notify(Self, Array[(String, String)]) -> NotifyResult raise @moon-pay-sdk.SdkError
 pub fn Client::verify_signature(Self, Array[(String, String)], StringView) -> Bool
 pub async fn Client::wap_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String) -> String raise @moon-pay-sdk.SdkError
 
@@ -46,6 +49,25 @@ pub(all) struct Config {
 }
 pub fn Config::new(app_id~ : String, private_key_pem~ : String, alipay_public_key_pem~ : String, gateway_url? : String) -> Self
 pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
+
+pub(all) struct NotifyResult {
+  trade_status : TradeStatus
+  out_trade_no : String
+  trade_no : String
+  total_amount : String
+  total_fen : Int
+  app_id : String
+  seller_id : String?
+  raw : Array[(String, String)]
+}
+pub fn NotifyResult::amount_matches(Self, Int) -> Bool
+pub fn NotifyResult::app_id(Self) -> String
+pub fn NotifyResult::out_trade_no(Self) -> String
+pub fn NotifyResult::seller_id(Self) -> String?
+pub fn NotifyResult::total_amount(Self) -> String
+pub fn NotifyResult::total_fen(Self) -> Int
+pub fn NotifyResult::trade_no(Self) -> String
+pub fn NotifyResult::trade_status(Self) -> TradeStatus
 
 pub(all) struct OrderStatus {
   out_trade_no : String
