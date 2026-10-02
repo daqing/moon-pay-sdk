@@ -97,34 +97,34 @@ test "public key pem verifies a private-key signature" {
 
 ///|
 test "malformed pem is rejected without crashing" {
-  let r = try? @crypto.load_private_key_pem("hello")
-  assert_true(
-    match r {
-      Err(@crypto.Malformed(_)) => true
-      _ => false
-    },
-  )
+  let verdict : String = try @crypto.load_private_key_pem("hello") catch {
+    @crypto.Malformed(_) => "malformed"
+    _ => "other error"
+  } noraise {
+    _ => "no error raised"
+  }
+  assert_eq(verdict, "malformed")
 }
 
 ///|
 test "valid armor with junk body is rejected" {
   let junk = "-----BEGIN PRIVATE KEY-----\n!!!not base64!!!\n-----END PRIVATE KEY-----"
-  let r = try? @crypto.load_private_key_pem(junk)
-  assert_true(
-    match r {
-      Err(@crypto.Malformed(_)) => true
-      _ => false
-    },
-  )
+  let verdict : String = try @crypto.load_private_key_pem(junk) catch {
+    @crypto.Malformed(_) => "malformed"
+    _ => "other error"
+  } noraise {
+    _ => "no error raised"
+  }
+  assert_eq(verdict, "malformed")
 }
 
 ///|
 test "a public key is not a private key" {
-  let r = try? @crypto.load_private_key_pem(spki_pem)
-  assert_true(
-    match r {
-      Err(@crypto.Malformed(_)) => true
-      _ => false
-    },
-  )
+  let verdict : String = try @crypto.load_private_key_pem(spki_pem) catch {
+    @crypto.Malformed(_) => "malformed"
+    _ => "other error"
+  } noraise {
+    _ => "no error raised"
+  }
+  assert_eq(verdict, "malformed")
 }

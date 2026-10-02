@@ -12,6 +12,8 @@ pub fn load_public_key_pem(String) -> @rsa.PublicKey raise CryptoError
 
 pub fn public_key_from_spki_der(Bytes) -> @rsa.PublicKey raise CryptoError
 
+pub fn sign_rsa_sha256(@rsa.PrivateKey, BytesView) -> Bytes
+
 // Errors
 pub(all) suberror CryptoError {
   Malformed(String)

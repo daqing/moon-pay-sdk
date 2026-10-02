@@ -43,7 +43,7 @@
 - [ ] **T2.2** `[M]` 密钥加载。
   用 `@x509.pem` 解码 PEM 信封（RFC 7468），再用 `@asn1` 的 TLV 原语走 PKCS#8 / PKCS#1 `RSAPrivateKey` DER 结构取出 (n, e, d)，构造 `@rsa.PrivateKey`；PEM 公钥（SubjectPublicKeyInfo）同样处理；绝不打印密钥内容。
   **完成标准：** 测试夹具能加载为可用密钥，畸形 PEM/DER 返回错误值而不是崩溃。
-- [ ] **T2.3** `[M]` RSA-SHA256 签名（`sign_rsa_sha256`）。
+- [x] **T2.3** `[M]` RSA-SHA256 签名（`sign_rsa_sha256`）。
   用商户私钥对报文签名（`@rsa.PrivateKey::sign`，scheme=Pkcs1、digest=Sha256）——微信 v3 请求鉴权和支付宝 RSA2 共同的基础原语。
   **完成标准：** 本实现产出的签名能通过 `openssl dgst -sha256 -sign` 生成参考签名的交叉验证。
 - [ ] **T2.4** `[M]` RSA-SHA256 验签（`verify_rsa_sha256`）。

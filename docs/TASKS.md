@@ -72,7 +72,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
   (SubjectPublicKeyInfo) the same way; never log key material.
   **Done when:** test fixtures load into working keys, and malformed
   PEM/DER produces an error value instead of a crash.
-- [ ] **T2.3** `[M]` RSA-SHA256 signing (`sign_rsa_sha256`).
+- [x] **T2.3** `[M]` RSA-SHA256 signing (`sign_rsa_sha256`).
   Sign a message with a merchant private key (`@rsa.PrivateKey::sign`,
   scheme Pkcs1 + digest Sha256) — the primitive behind both WeChat v3
   request auth and Alipay RSA2.
