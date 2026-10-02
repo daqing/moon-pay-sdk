@@ -65,7 +65,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
   and `moonbitstack/moonbase@0.4.0`; import them from the `crypto` package.
   **Done when:** a unit test round-trips a trivial sign/verify through
   `mooncrypt/rsa`, proving the dependency graph builds on native.
-- [ ] **T2.2** `[M]` Key loading.
+- [x] **T2.2** `[M]` Key loading.
   Decode PEM envelopes (RFC 7468, via `@x509.pem`), then walk PKCS#8 /
   PKCS#1 `RSAPrivateKey` DER with `@asn1` TLV primitives to extract
   (n, e, d) and build `@rsa.PrivateKey`; parse PEM public keys

@@ -40,7 +40,7 @@
 - [x] **T2.1** `[S]` 依赖脚手架。
   引入并固定 `moonbitstack/mooncrypt@0.3.1`、`moonbitstack/mooncred@0.6.1`、`moonbitstack/moonbase@0.4.0`；在 `crypto` 包中引用。
   **完成标准：** 单元测试通过 `mooncrypt/rsa` 完成一次简单的签名/验签往返，证明依赖图在 native 下可构建。
-- [ ] **T2.2** `[M]` 密钥加载。
+- [x] **T2.2** `[M]` 密钥加载。
   用 `@x509.pem` 解码 PEM 信封（RFC 7468），再用 `@asn1` 的 TLV 原语走 PKCS#8 / PKCS#1 `RSAPrivateKey` DER 结构取出 (n, e, d)，构造 `@rsa.PrivateKey`；PEM 公钥（SubjectPublicKeyInfo）同样处理；绝不打印密钥内容。
   **完成标准：** 测试夹具能加载为可用密钥，畸形 PEM/DER 返回错误值而不是崩溃。
 - [x] **T2.3** `[M]` RSA-SHA256 签名（`sign_rsa_sha256`）。
