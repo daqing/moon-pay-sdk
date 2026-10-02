@@ -270,7 +270,7 @@ Goal: the suite that makes the hackathon demo credible.
   files reviewed as the public API surface; no stray TODO/FIXME in public
   APIs.
   **Done when:** `git diff` after `moon info && moon fmt` is empty.
-- [ ] **T7.6** `[S]` `(optional)` Sandbox check script, guarded by
+- [x] **T7.6** `[S]` `(optional)` Sandbox check script, guarded by
   environment variables, plus docs on running it with real sandbox
   credentials.
 
