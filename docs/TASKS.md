@@ -96,7 +96,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
   `@async/fs` as an async helper, hex encoding via `@base16`; fallback
   candidate documented: `@async/tls.rand_bytes`.
   **Done when:** length and charset unit tests pass.
-- [ ] **T2.8** `[S]` Error mapping: `@spec.Broken`, `@asn1.Refused` and
+- [x] **T2.8** `[S]` Error mapping: `@spec.Broken`, `@asn1.Refused` and
   base64 failures → typed `CryptoError` values.
   **Done when:** no public function in `crypto` panics or aborts.
 - [x] **T2.9** `[S]` Test fixtures under `test_keys/` (merchant key pair,

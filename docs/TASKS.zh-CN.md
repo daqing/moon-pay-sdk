@@ -56,7 +56,7 @@
   **完成标准：** 参考向量解密结果一致；密文、tag、AAD 任一被篡改都能干净失败。
 - [x] **T2.7** `[S]` 随机数：经 `@async/fs` 读取 `/dev/urandom`（Linux/macOS），`@base16` 做十六进制编码；文档记录备选方案 `@async/tls.rand_bytes`。
   **完成标准：** 长度与字符集单元测试通过。
-- [ ] **T2.8** `[S]` 错误映射：`@spec.Broken`、`@asn1.Refused` 及 base64 失败 → 类型化的 `CryptoError`。
+- [x] **T2.8** `[S]` 错误映射：`@spec.Broken`、`@asn1.Refused` 及 base64 失败 → 类型化的 `CryptoError`。
   **完成标准：** `crypto` 包的公开函数不 panic、不 abort。
 - [x] **T2.9** `[S]` `test_keys/` 下的测试夹具（商户密钥对、平台风格自签证书），并附上可复现它们的 openssl 命令序列文档。
   **完成标准：** 夹具已提交、明确标注仅用于测试，且再生流程可复现。
