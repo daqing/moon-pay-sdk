@@ -289,7 +289,7 @@ Goal: the hackathon-ready v0.1.
   accurate.
   **Done when:** every README code sample matches the real API; `README.md`
   (symlink) shows the same content.
-- [ ] **T8.3** `[S]` Release chores: final `moon.mod` description/keywords,
+- [x] **T8.3** `[S]` Release chores: final `moon.mod` description/keywords,
   release notes, annotated tag `v0.1.0` (version file changes go in the same
   commit as the release prep).
   **Done when:** tag exists locally and points at the release commit.
