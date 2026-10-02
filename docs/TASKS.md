@@ -253,7 +253,7 @@ Goal: the suite that makes the hackathon demo credible.
   New tests: EC public keys and certificates, broken PKCS#8 inner DER,
   empty/non-OID algorithm identifiers, sub-tag GCM ciphertext, per-variant
   error rendering.
-- [ ] **T7.2** `[M]` Mocked-transport suites for both clients: golden auth
+- [x] **T7.2** `[M]` Mocked-transport suites for both clients: golden auth
   headers, response parsing, and provider-error mapping.
   **Done when:** each public client method has at least one happy-path and
   one error-path test.
