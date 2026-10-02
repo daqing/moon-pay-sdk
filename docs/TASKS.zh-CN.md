@@ -121,7 +121,7 @@
 - [x] **T6.1** `[M]` 参数引擎。
   系统参数（app_id、method、format、charset、sign_type=RSA2、timestamp、version、notify_url / return_url）+ `biz_content` JSON；规范串 = 参数按 key 排序、排除 `sign` 与 `sign_type`、以 `k=v&` 拼接；RSA2 签名。
   **完成标准：** golden vector 测试固定规范串与签名。
-- [ ] **T6.2** `[S]` 跳转 URL 构造器，为 `gateway.do` GET 流程做百分号编码。
+- [x] **T6.2** `[S]` 跳转 URL 构造器，为 `gateway.do` GET 流程做百分号编码。
   **完成标准：** 编码单元测试通过。
 - [x] **T6.3** `[M]` `page_pay_url`（`alipay.trade.page.pay`）——电脑网站支付，与 README 示例一致。
   **完成标准：** 生成 URL 中的签名能用支付宝公钥验证通过（用沙箱或官方验签工具核对）。
@@ -132,7 +132,7 @@
 - [x] **T6.6** `[M]` 异步通知验签。
   解析 POST 表单参数，RSA2 验签（排除 `sign`/`sign_type`），产出类型化 `NotifyResult`（trade_status、out_trade_no、trade_no、total_amount、app_id、seller_id），并提供金额比对辅助函数，让业务侧能确认通知与本地订单一致。
   **完成标准：** 有效、被篡改、app_id 伪造的通知均有测试。
-- [ ] **T6.7** `[S]` 应答辅助：返回纯文本 `success`——其他任何内容都会导致支付宝重试。
+- [x] **T6.7** `[S]` 应答辅助：返回纯文本 `success`——其他任何内容都会导致支付宝重试。
   **完成标准：** 单元测试固定应答体。
 - [x] **T6.8** `[S]` `(optional)` 电脑网站支付 `return_url` 的 GET 参数验签，复用 T6.6 的验签路径。
 

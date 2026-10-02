@@ -210,7 +210,7 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
   string = params sorted by key, excluding `sign` and `sign_type`, joined as
   `k=v&`; RSA2 signature.
   **Done when:** golden-vector tests pin the canonical string and signature.
-- [ ] **T6.2** `[S]` Redirect URL builder with percent-encoding for the
+- [x] **T6.2** `[S]` Redirect URL builder with percent-encoding for the
   `gateway.do` GET flow.
   **Done when:** encoding unit tests pass.
 - [x] **T6.3** `[M]` `page_pay_url` (`alipay.trade.page.pay`) — desktop
@@ -231,7 +231,7 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
   total_amount, app_id, seller_id) plus an amount-matching helper so apps
   can confirm the notification matches the local order.
   **Done when:** valid, tampered, and wrong-app-id notifications are tested.
-- [ ] **T6.7** `[S]` Ack helper: respond with the plain text `success` —
+- [x] **T6.7** `[S]` Ack helper: respond with the plain text `success` —
   anything else makes Alipay retry.
   **Done when:** unit test pins the exact body.
 - [x] **T6.8** `[S]` `(optional)` `return_url` GET-parameter verification for
