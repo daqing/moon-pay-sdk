@@ -3,6 +3,7 @@ package "daqing/moon-pay-sdk/alipay"
 
 import {
   "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/transport",
   "moonbitstack/mooncrypt/rsa",
 }
 
@@ -13,6 +14,8 @@ pub fn build_sign_content(Array[(String, String)]) -> String
 
 pub fn format_beijing(Int64) -> String
 
+pub fn percent_decode(StringView) -> String raise @moon-pay-sdk.SdkError
+
 pub fn percent_encode(StringView) -> String
 
 pub fn sign_params(@rsa.PrivateKey, Array[(String, String)]) -> String
@@ -22,6 +25,17 @@ pub fn system_params(Config, method~ : String, timestamp~ : String, notify_url? 
 // Errors
 
 // Types and methods
+pub struct Client {
+  config : Config
+  private_key : @rsa.PrivateKey
+  alipay_public_key : @rsa.PublicKey
+  transport : &@transport.Transport
+  now_ms : () -> Int64
+}
+pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
+pub async fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
+pub fn Client::verify_signature(Self, Array[(String, String)], StringView) -> Bool
+
 pub(all) struct Config {
   app_id : String
   private_key_pem : String

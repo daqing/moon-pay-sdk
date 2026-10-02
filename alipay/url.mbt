@@ -58,3 +58,60 @@ pub fn build_pay_url(
   builder.write_string(percent_encode(signature))
   builder.to_string()
 }
+
+///|
+/// Decode a percent-encoded parameter value: %XX sequences become their
+/// bytes, `+` becomes a space, and the bytes are read back as UTF-8.
+pub fn percent_decode(text : StringView) -> String raise @moon-pay-sdk.SdkError {
+  let bytes : Array[Byte] = []
+  let view = text
+  let mut i = 0
+  while i < view.length() {
+    let ch = view.get_char(i)
+    let ch = match ch {
+      Some(c) => c
+      None => abort("index within length")
+    }
+    if ch == '%' {
+      let high = hex_value_of(view, i + 1)
+      let low = hex_value_of(view, i + 2)
+      bytes.push(((high << 4) | low).to_byte())
+      i += 3
+    } else if ch == '+' {
+      bytes.push(b' ')
+      i += 1
+    } else {
+      let encoded = @utf8.encode(ch.to_string())
+      for byte in encoded {
+        bytes.push(byte)
+      }
+      i += 1
+    }
+  }
+  let collected = Bytes::from_array(bytes)
+  @utf8.decode(collected[:]) catch {
+    _ => raise @moon-pay-sdk.Config("decoded bytes are not valid UTF-8")
+  }
+}
+
+///|
+fn hex_value_of(
+  view : StringView,
+  index : Int,
+) -> Int raise @moon-pay-sdk.SdkError {
+  let ch = view.get_char(index)
+  let ch = match ch {
+    Some(c) => c
+    None => raise @moon-pay-sdk.Config("percent encoding ends early")
+  }
+  let code = ch.to_int()
+  if code >= 0x30 && code <= 0x39 {
+    code - 0x30
+  } else if code >= 0x41 && code <= 0x46 {
+    code - 0x41 + 10
+  } else if code >= 0x61 && code <= 0x66 {
+    code - 0x61 + 10
+  } else {
+    raise @moon-pay-sdk.Config("invalid percent encoding")
+  }
+}
