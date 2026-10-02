@@ -92,7 +92,7 @@ AES-GCM, ASN.1), certificates in `moonbitstack/mooncred` (X.509), codecs in
   `@gcm.Gcm::open` expects.
   **Done when:** decrypting a reference vector matches, and tampered
   ciphertext, tag, or AAD each fail cleanly.
-- [ ] **T2.7** `[S]` Random bytes: read `/dev/urandom` (Linux/macOS) through
+- [x] **T2.7** `[S]` Random bytes: read `/dev/urandom` (Linux/macOS) through
   `@async/fs` as an async helper, hex encoding via `@base16`; fallback
   candidate documented: `@async/tls.rand_bytes`.
   **Done when:** length and charset unit tests pass.

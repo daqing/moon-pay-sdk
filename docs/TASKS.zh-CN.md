@@ -54,7 +54,7 @@
 - [x] **T2.6** `[M]` AES-256-GCM 解密（`aes256_gcm_decrypt`）。
   微信 v3 回调场景：base64 密文末尾附加 16 字节 GCM tag，12 字节 nonce，可选关联数据——正是 `@gcm.Gcm::open` 期望的格式。
   **完成标准：** 参考向量解密结果一致；密文、tag、AAD 任一被篡改都能干净失败。
-- [ ] **T2.7** `[S]` 随机数：经 `@async/fs` 读取 `/dev/urandom`（Linux/macOS），`@base16` 做十六进制编码；文档记录备选方案 `@async/tls.rand_bytes`。
+- [x] **T2.7** `[S]` 随机数：经 `@async/fs` 读取 `/dev/urandom`（Linux/macOS），`@base16` 做十六进制编码；文档记录备选方案 `@async/tls.rand_bytes`。
   **完成标准：** 长度与字符集单元测试通过。
 - [ ] **T2.8** `[S]` 错误映射：`@spec.Broken`、`@asn1.Refused` 及 base64 失败 → 类型化的 `CryptoError`。
   **完成标准：** `crypto` 包的公开函数不 panic、不 abort。

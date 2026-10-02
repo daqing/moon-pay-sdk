@@ -1,4 +1,6 @@
 import {
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
   "moonbitstack/mooncrypt/asn1",
   "moonbitstack/mooncrypt/rsa",
   "moonbitstack/mooncrypt/cipher/aes",
