@@ -47,3 +47,23 @@ pub async fn Client::page_pay_url(
     return_url=Some(return_url),
   )
 }
+
+///|
+/// Create a mobile-website checkout via `alipay.trade.wap.pay`: redirect
+/// the customer's mobile browser to the returned URL.
+pub async fn Client::wap_pay_url(
+  self : Client,
+  out_trade_no~ : String,
+  total_fen~ : Int,
+  subject~ : String,
+  notify_url~ : String,
+) -> String raise @moon-pay-sdk.SdkError {
+  @moon-pay-sdk.validate_amount_fen(total_fen)
+  @moon-pay-sdk.validate_alipay_out_trade_no(out_trade_no)
+  let biz : Json = {
+    "out_trade_no": out_trade_no,
+    "total_amount": @moon-pay-sdk.format_yuan(total_fen),
+    "subject": subject,
+  }
+  self.pay_url(method="alipay.trade.wap.pay", biz~, notify_url~)
+}

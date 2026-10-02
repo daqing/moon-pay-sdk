@@ -213,11 +213,11 @@ Goal: signed redirect URLs, order query, and trusted async notifications.
 - [ ] **T6.2** `[S]` Redirect URL builder with percent-encoding for the
   `gateway.do` GET flow.
   **Done when:** encoding unit tests pass.
-- [ ] **T6.3** `[M]` `page_pay_url` (`alipay.trade.page.pay`) — desktop
+- [x] **T6.3** `[M]` `page_pay_url` (`alipay.trade.page.pay`) — desktop
   website checkout, matching the README example.
   **Done when:** the generated URL's signature validates with the Alipay
   public key (verify via sandbox or the official signature-check tool).
-- [ ] **T6.4** `[S]` `wap_pay_url` (`alipay.trade.wap.pay`) — mobile website
+- [x] **T6.4** `[S]` `wap_pay_url` (`alipay.trade.wap.pay`) — mobile website
   checkout.
   **Done when:** same validation as T6.3.
 - [ ] **T6.5** `[M]` Order query (`alipay.trade.query`): POST form to the

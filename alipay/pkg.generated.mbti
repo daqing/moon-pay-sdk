@@ -35,6 +35,7 @@ pub struct Client {
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
 pub async fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
 pub fn Client::verify_signature(Self, Array[(String, String)], StringView) -> Bool
+pub async fn Client::wap_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String) -> String raise @moon-pay-sdk.SdkError
 
 pub(all) struct Config {
   app_id : String

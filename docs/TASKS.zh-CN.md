@@ -123,9 +123,9 @@
   **完成标准：** golden vector 测试固定规范串与签名。
 - [ ] **T6.2** `[S]` 跳转 URL 构造器，为 `gateway.do` GET 流程做百分号编码。
   **完成标准：** 编码单元测试通过。
-- [ ] **T6.3** `[M]` `page_pay_url`（`alipay.trade.page.pay`）——电脑网站支付，与 README 示例一致。
+- [x] **T6.3** `[M]` `page_pay_url`（`alipay.trade.page.pay`）——电脑网站支付，与 README 示例一致。
   **完成标准：** 生成 URL 中的签名能用支付宝公钥验证通过（用沙箱或官方验签工具核对）。
-- [ ] **T6.4** `[S]` `wap_pay_url`（`alipay.trade.wap.pay`）——手机网站支付。
+- [x] **T6.4** `[S]` `wap_pay_url`（`alipay.trade.wap.pay`）——手机网站支付。
   **完成标准：** 同 T6.3 的验证方式。
 - [ ] **T6.5** `[M]` 查单（`alipay.trade.query`）：POST 表单到网关，验证响应 `sign`，映射 `trade_status`（WAIT_BUYER_PAY、TRADE_CLOSED、TRADE_SUCCESS、TRADE_FINISHED）。
   **完成标准：** mock 测试覆盖全部状态与错误映射（如 ACQ.TRADE_NOT_EXIST）。
