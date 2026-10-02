@@ -103,16 +103,18 @@ async fn main {
 ///|
 async fn handle_wechat_callback(
   wechat : @wechat.Client,
-  headers : Map[String, String],
+  headers : Array[(String, String)],
   body : Bytes,
-) {
-  // Verifies the WeChat Pay signature, decrypts the AES-256-GCM resource
-  // and returns the parsed payment result.
+) -> (Int, String) {
+  // Verifies the WeChat Pay signature (replay window included), decrypts the
+  // AES-256-GCM resource and returns the parsed payment result.
   let notification = wechat.verify_callback(headers, body)
-  if notification.trade_state == "SUCCESS" {
-    // notification.out_trade_no is paid — update your own order storage here.
+  if notification.trade_state() is wechat.Success {
+    // notification.out_trade_no() is paid — update your own order storage.
+    @wechat.ack_success()
+  } else {
+    @wechat.ack_failure(message="processing failed")
   }
-  // Respond 200 to acknowledge; respond 4xx/5xx to make WeChat retry.
 }
 ```
 

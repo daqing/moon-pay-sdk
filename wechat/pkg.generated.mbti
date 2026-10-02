@@ -9,6 +9,10 @@ import {
 }
 
 // Values
+pub fn ack_failure(message~ : String) -> (Int, String)
+
+pub fn ack_success() -> (Int, String)
+
 pub fn authorization_header(Config, @rsa.PrivateKey, meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
 
 pub fn build_sign_message(meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
@@ -43,6 +47,7 @@ pub async fn Client::platform_public_key(Self, String) -> @rsa.PublicKey raise @
 pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order_by_id(Self, transaction_id~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
 pub async fn Client::refresh_platform_certs(Self) -> Unit raise @moon-pay-sdk.SdkError
+pub async fn Client::verify_callback(Self, Array[(String, String)], Bytes) -> Notification raise @moon-pay-sdk.SdkError
 pub async fn Client::verify_callback_signature(Self, headers~ : CallbackHeaders, body~ : StringView, window_seconds? : Int) -> Unit raise @moon-pay-sdk.SdkError
 
 pub(all) struct Config {

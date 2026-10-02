@@ -86,15 +86,17 @@ async fn main {
 ///|
 async fn handle_wechat_callback(
   wechat : @wechat.Client,
-  headers : Map[String, String],
+  headers : Array[(String, String)],
   body : Bytes,
-) {
-  // 验证微信支付签名，解密 AES-256-GCM 报文，返回解析后的支付结果。
+) -> (Int, String) {
+  // 验证微信支付签名（含防重放时间窗），解密 AES-256-GCM 报文，返回解析后的支付结果。
   let notification = wechat.verify_callback(headers, body)
-  if notification.trade_state == "SUCCESS" {
-    // notification.out_trade_no 已支付——在这里更新你自己的订单存储。
+  if notification.trade_state() is wechat.Success {
+    // notification.out_trade_no() 已支付——在这里更新你自己的订单存储。
+    @wechat.ack_success()
+  } else {
+    @wechat.ack_failure(message="processing failed")
   }
-  // 返回 200 表示确认；返回 4xx/5xx 让微信重试。
 }
 ```
 
