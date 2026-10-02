@@ -195,7 +195,7 @@ Goal: a callback endpoint can trust and parse what WeChat pushes.
   `{"code":"SUCCESS","message":"OK"}` and a failure body for 4xx/5xx replies
   (which trigger WeChat's retry schedule).
   **Done when:** snapshot tests cover both.
-- [ ] **T5.5** `[S]` Composite `verify_callback(headers, body) ->
+- [x] **T5.5** `[S]` Composite `verify_callback(headers, body) ->
   Notification` — the exact API shown in the README example.
   **Done when:** the README example compiles against the real API (update
   the READMEs if names drifted).
