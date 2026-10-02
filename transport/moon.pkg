@@ -1,0 +1,8 @@
+import {
+  "moonbitlang/async/http",
+}
+
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/socket",
+} for "test"

@@ -1,0 +1,9 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/core/encoding/utf8",
+  "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/crypto",
+  "daqing/moon-pay-sdk/transport",
+  "moonbitstack/moonbase/base64",
+  "moonbitstack/mooncrypt/rsa",
+}

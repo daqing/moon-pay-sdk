@@ -1,7 +1,6 @@
 ///|
-/// Entry point for the CLI or runnable program in this template.
-/// Keep main focused; move logic into the library package.
-/// Run with `moon run cmd/main` from the project root.
-fn main {
-  println("Hello")
+async fn main {
+  let nonce = @crypto.random_hex(16)
+  println("nonce: \{nonce}")
+  println("native crypto smoke test passed")
 }

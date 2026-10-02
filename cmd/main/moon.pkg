@@ -1,5 +1,6 @@
-// import {
-//   "daqing/moon-pay-sdk" @lib,
-// }
+import {
+  "moonbitlang/async",
+  "daqing/moon-pay-sdk/crypto",
+}
 
 pkgtype(kind: "executable")

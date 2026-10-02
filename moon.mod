@@ -11,7 +11,7 @@
 
 name = "daqing/moon-pay-sdk"
 
-version = "0.1.0"
+version = "0.8.6"
 
 readme = "README.mbt.md"
 
@@ -19,8 +19,15 @@ repository = "https://github.com/daqing/moon-pay-sdk"
 
 license = "MIT"
 
-keywords = [ ]
+keywords = [ "payment", "wechat-pay", "alipay", "sdk" ]
 
-preferred_target = "wasm"
+preferred_target = "native"
 
-description = ""
+description = "Native MoonBit SDK for WeChat Pay and Alipay"
+
+import {
+  "moonbitlang/async@0.22.4",
+  "moonbitstack/mooncrypt@0.3.1",
+  "moonbitstack/mooncred@0.6.1",
+  "moonbitstack/moonbase@0.4.0",
+}

@@ -1,0 +1,124 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "daqing/moon-pay-sdk/wechat"
+
+import {
+  "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/transport",
+  "moonbitlang/core/debug",
+  "moonbitstack/mooncrypt/rsa",
+}
+
+// Values
+pub fn ack_failure(message~ : String) -> (Int, String)
+
+pub fn ack_success() -> (Int, String)
+
+pub fn authorization_header(Config, @rsa.PrivateKey, meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
+
+pub fn build_sign_message(meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
+
+pub fn callback_headers_of(Array[(String, String)]) -> CallbackHeaders?
+
+pub fn sign_request(@rsa.PrivateKey, StringView) -> String
+
+// Errors
+
+// Types and methods
+pub(all) struct CallbackHeaders {
+  serial : String
+  timestamp : String
+  nonce : String
+  signature : String
+}
+
+pub struct Client {
+  config : Config
+  private_key : @rsa.PrivateKey
+  transport : &@transport.Transport
+  now_ms : () -> Int64
+  certs : Map[String, @rsa.PublicKey]
+  verify_responses : Bool
+}
+pub async fn Client::h5_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, payer_client_ip~ : String) -> H5Order raise @moon-pay-sdk.SdkError
+pub async fn Client::native_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String) -> NativeOrder raise @moon-pay-sdk.SdkError
+pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64, verify_responses? : Bool) -> Self raise @moon-pay-sdk.SdkError
+pub async fn Client::parse_notification(Self, Array[(String, String)], Bytes) -> Notification raise @moon-pay-sdk.SdkError
+pub async fn Client::platform_public_key(Self, String) -> @rsa.PublicKey raise @moon-pay-sdk.SdkError
+pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
+pub async fn Client::query_order_by_id(Self, transaction_id~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
+pub async fn Client::refresh_platform_certs(Self) -> Unit raise @moon-pay-sdk.SdkError
+pub async fn Client::verify_callback(Self, Array[(String, String)], Bytes) -> Notification raise @moon-pay-sdk.SdkError
+pub async fn Client::verify_callback_signature(Self, headers~ : CallbackHeaders, body~ : StringView, window_seconds? : Int) -> Unit raise @moon-pay-sdk.SdkError
+
+pub(all) struct Config {
+  appid : String
+  mchid : String
+  serial_no : String
+  private_key_pem : String
+  api_v3_key : String
+  base_url : String
+}
+pub fn Config::new(appid~ : String, mchid~ : String, serial_no~ : String, private_key_pem~ : String, api_v3_key~ : String, base_url? : String) -> Self
+pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
+
+pub(all) struct H5Order {
+  h5_url : String
+}
+pub fn H5Order::h5_url(Self) -> String
+
+pub(all) struct NativeOrder {
+  code_url : String
+}
+pub fn NativeOrder::code_url(Self) -> String
+
+pub(all) struct Notification {
+  event_type : String
+  summary : String?
+  out_trade_no : String
+  transaction_id : String
+  trade_state : TradeState
+  total_fen : Int
+  payer_fen : Int?
+  resource : Json
+}
+pub fn Notification::event_type(Self) -> String
+pub fn Notification::out_trade_no(Self) -> String
+pub fn Notification::payer_fen(Self) -> Int?
+pub fn Notification::resource(Self) -> Json
+pub fn Notification::summary(Self) -> String?
+pub fn Notification::total_fen(Self) -> Int
+pub fn Notification::trade_state(Self) -> TradeState
+pub fn Notification::transaction_id(Self) -> String
+
+pub(all) struct OrderStatus {
+  out_trade_no : String
+  transaction_id : String
+  trade_state : TradeState
+  total_fen : Int
+  payer_fen : Int?
+  success_time : String?
+}
+pub fn OrderStatus::out_trade_no(Self) -> String
+pub fn OrderStatus::payer_fen(Self) -> Int?
+pub fn OrderStatus::success_time(Self) -> String?
+pub fn OrderStatus::total_fen(Self) -> Int
+pub fn OrderStatus::trade_state(Self) -> TradeState
+pub fn OrderStatus::transaction_id(Self) -> String
+
+pub(all) enum TradeState {
+  Success
+  Refund
+  NotPay
+  Closed
+  Revoked
+  UserPaying
+  PayError
+  Unknown(String)
+} derive(Eq, @debug.Debug)
+pub fn TradeState::equal(Self, Self) -> Bool
+pub fn TradeState::not_equal(Self, Self) -> Bool
+pub fn TradeState::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
