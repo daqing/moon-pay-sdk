@@ -148,7 +148,7 @@ offline against the mock transport.
   fen) → `code_url` for the QR code.
   **Done when:** a mock-transport test asserts the request JSON and headers
   and parses the response.
-- [ ] **T4.3** `[M]` H5 order: `POST /v3/pay/transactions/h5` with
+- [x] **T4.3** `[M]` H5 order: `POST /v3/pay/transactions/h5` with
   `scene_info.payer_client_ip` → `h5_url`.
   **Done when:** mock-transport test passes.
 - [ ] **T4.4** `[M]` Order query: by `out_trade_no` and by `transaction_id`

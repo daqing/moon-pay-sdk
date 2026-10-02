@@ -23,6 +23,7 @@ pub struct Client {
   transport : &@transport.Transport
   now_ms : () -> Int64
 }
+pub async fn Client::h5_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, payer_client_ip~ : String) -> H5Order raise @moon-pay-sdk.SdkError
 pub async fn Client::native_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String) -> NativeOrder raise @moon-pay-sdk.SdkError
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
 
@@ -36,6 +37,11 @@ pub(all) struct Config {
 }
 pub fn Config::new(appid~ : String, mchid~ : String, serial_no~ : String, private_key_pem~ : String, api_v3_key~ : String, base_url? : String) -> Self
 pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
+
+pub(all) struct H5Order {
+  h5_url : String
+}
+pub fn H5Order::h5_url(Self) -> String
 
 pub(all) struct NativeOrder {
   code_url : String
