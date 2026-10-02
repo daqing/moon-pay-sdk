@@ -262,7 +262,7 @@ Goal: the suite that makes the hackathon demo credible.
   → post a signed callback → verify + decrypt → ack; Alipay flow = notify
   form → verify → ack. All signed with `test_keys/` material.
   **Done when:** both flows pass as `moon test` cases.
-- [ ] **T7.4** `[S]` Security negatives: replayed callback (stale timestamp),
+- [x] **T7.4** `[S]` Security negatives: replayed callback (stale timestamp),
   unknown serial, tampered signature or body, wrong APIv3 key, and Alipay
   amount mismatch — each rejected with a distinct, clear error.
   **Done when:** each case has a test.
