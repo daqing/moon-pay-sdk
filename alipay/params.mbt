@@ -77,7 +77,7 @@ fn key_greater(a : String, b : String) -> Bool {
 pub fn sign_params(
   private_key : @rsa.PrivateKey,
   params : Array[(String, String)],
-) -> String raise @moon-pay-sdk.SdkError {
+) -> String {
   let content = build_sign_content(params)
   let signature = @crypto.sign_rsa_sha256(private_key, @utf8.encode(content)[:])
   @base64.encode(signature[:])

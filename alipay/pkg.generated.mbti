@@ -7,11 +7,15 @@ import {
 }
 
 // Values
+pub fn build_pay_url(Config, Array[(String, String)], String) -> String
+
 pub fn build_sign_content(Array[(String, String)]) -> String
 
 pub fn format_beijing(Int64) -> String
 
-pub fn sign_params(@rsa.PrivateKey, Array[(String, String)]) -> String raise @moon-pay-sdk.SdkError
+pub fn percent_encode(StringView) -> String
+
+pub fn sign_params(@rsa.PrivateKey, Array[(String, String)]) -> String
 
 pub fn system_params(Config, method~ : String, timestamp~ : String, notify_url? : String?, return_url? : String?) -> Array[(String, String)]
 
