@@ -168,7 +168,7 @@
 - [ ] **T8.4** `[S]` `moon publish` 发布到 mooncakes.io。
   **完成标准：** 包页面正确渲染 `README.mbt.md`，且能通过 `moon add` 安装该版本。
   **受阻，待决策：** `moon publish --dry-run` 打包检查通过（"Check passed"），但仓库拒绝 v0.1.0（409——该版本在 mooncakes.io 上已存在）。真实发布需要：在 `moon.mod` 中升版本号（如 0.1.1）并明确授权后执行（发布属外部不可逆操作）。
-- [ ] **T8.5** `[S]` `(optional)` 黑客松提交用的演示脚本或录屏。
+- [x] **T8.5** `[S]` `(optional)` 黑客松提交用的演示脚本或录屏。
 
 ## T9 — 延伸 / v0.1 之后
 

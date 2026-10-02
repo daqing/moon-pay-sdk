@@ -301,7 +301,7 @@ Goal: the hackathon-ready v0.1.
   already exists on mooncakes.io. Publishing requires bumping the version
   (e.g. 0.1.1) in `moon.mod` and an explicit go-ahead, since publishing is an
   external, irreversible action.
-- [ ] **T8.5** `[S]` `(optional)` Demo script or recording for the hackathon
+- [x] **T8.5** `[S]` `(optional)` Demo script or recording for the hackathon
   submission.
 
 ## T9 — Stretch / post-v0.1
