@@ -5,3 +5,13 @@
 pub fn sign_rsa_sha256(key : @rsa.PrivateKey, message : BytesView) -> Bytes {
   key.sign(message)
 }
+
+///|
+/// Check an RSA PKCS#1 v1.5 / SHA-256 signature.
+pub fn verify_rsa_sha256(
+  key : @rsa.PublicKey,
+  message : BytesView,
+  signature : BytesView,
+) -> Bool {
+  key.verify(message, signature)
+}

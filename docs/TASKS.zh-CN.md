@@ -46,7 +46,7 @@
 - [x] **T2.3** `[M]` RSA-SHA256 签名（`sign_rsa_sha256`）。
   用商户私钥对报文签名（`@rsa.PrivateKey::sign`，scheme=Pkcs1、digest=Sha256）——微信 v3 请求鉴权和支付宝 RSA2 共同的基础原语。
   **完成标准：** 本实现产出的签名能通过 `openssl dgst -sha256 -sign` 生成参考签名的交叉验证。
-- [ ] **T2.4** `[M]` RSA-SHA256 验签（`verify_rsa_sha256`）。
+- [x] **T2.4** `[M]` RSA-SHA256 验签（`verify_rsa_sha256`）。
   **完成标准：** 有效签名通过；无效、被篡改、密钥不匹配分别以不同错误失败。
 - [ ] **T2.5** `[S]` X.509 证书解析。
   经 `@x509.parse` / `Spki::rsa`：从 PEM 证书提取 (a) RSA 公钥和 (b) 小写十六进制序列号——即微信 `Wechatpay-Serial` 请求头所用的形式。

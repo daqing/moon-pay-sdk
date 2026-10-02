@@ -14,6 +14,8 @@ pub fn public_key_from_spki_der(Bytes) -> @rsa.PublicKey raise CryptoError
 
 pub fn sign_rsa_sha256(@rsa.PrivateKey, BytesView) -> Bytes
 
+pub fn verify_rsa_sha256(@rsa.PublicKey, BytesView, BytesView) -> Bool
+
 // Errors
 pub(all) suberror CryptoError {
   Malformed(String)
