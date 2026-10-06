@@ -2,15 +2,19 @@
 /// Fetch, decrypt and cache WeChat Pay platform certificates.
 ///
 /// Platform public keys are what every callback signature and every API
-/// response signature is verified against. WeChat rotates them: the current
+/// response signature is verified against. In certificate mode the current
 /// set is downloaded from `/v3/certificates`, where each certificate arrives
-/// encrypted under the APIv3 key. The cache maps certificate serial (lowercase
-/// hex, the `Wechatpay-Serial` form) to the public key; a signature bearing an
-/// unknown serial triggers one full refresh.
+/// encrypted under the APIv3 key. In public-key mode (public key mode) the
+/// WeChat Pay public key from the merchant console is configured up front
+/// under its `PUB_KEY_ID_...` serial and no certificate is ever downloaded.
+/// The cache maps serial (lowercase, the `Wechatpay-Serial` form) to the
+/// public key; a signature bearing an unknown serial triggers one full
+/// refresh in certificate mode.
 
 ///|
-/// The public key for a platform certificate serial. Serves from the cache;
-/// an unknown serial triggers a refresh before failing.
+/// The public key for a platform certificate serial, or the configured
+/// WeChat Pay public key in public-key mode. Serves from the cache; an
+/// unknown serial triggers a refresh before failing.
 pub async fn Client::platform_public_key(
   self : Client,
   serial : String,
@@ -18,16 +22,23 @@ pub async fn Client::platform_public_key(
   let normalized = serial.to_lower()
   match self.certs.get(normalized) {
     Some(public_key) => public_key
-    None => {
-      self.refresh_platform_certs()
-      match self.certs.get(normalized) {
-        Some(public_key) => public_key
-        None =>
-          raise Network(
-            "platform certificate \"\{serial}\" is unknown even after refresh",
-          )
+    None =>
+      if normalized.has_prefix("pub_key_id_") {
+        // Public-key mode serials never come from /v3/certificates; a miss
+        // means the configured public key id does not match this signature.
+        raise Network(
+          "wechat pay public-key mode: signature serial \"\{serial}\" does not match the configured platform_public_key_id \"\{self.config.platform_public_key_id}\" — use the public key and serial from the merchant console",
+        )
+      } else {
+        self.refresh_platform_certs()
+        match self.certs.get(normalized) {
+          Some(public_key) => public_key
+          None =>
+            raise Network(
+              "platform certificate \"\{serial}\" is unknown even after refresh",
+            )
+        }
       }
-    }
   }
 }
 

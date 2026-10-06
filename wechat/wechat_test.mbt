@@ -125,3 +125,49 @@ test "a base url without a scheme is rejected" {
   }
   assert_true(verdict.has_prefix("base_url"))
 }
+
+///|
+test "stray whitespace in merchant identifiers is rejected" {
+  let cases : Array[(String, @wechat.Config)] = [
+    (
+      "appid",
+      @wechat.Config::new(
+        appid=" wx8888888888888888",
+        mchid="1900000000",
+        serial_no="S",
+        private_key_pem="pem",
+        api_v3_key=valid_api_v3_key,
+      ),
+    ),
+    (
+      "mchid",
+      @wechat.Config::new(
+        appid="wx1",
+        mchid="1900000000 ",
+        serial_no="S",
+        private_key_pem="pem",
+        api_v3_key=valid_api_v3_key,
+      ),
+    ),
+    (
+      "serial_no",
+      @wechat.Config::new(
+        appid="wx1",
+        mchid="1900000000",
+        serial_no="5C37C246C82F80008697C83D8F8761F99D773410 ",
+        private_key_pem="pem",
+        api_v3_key=valid_api_v3_key,
+      ),
+    ),
+  ]
+  for case in cases {
+    let verdict : String = try @wechat.Config::validate(case.1) catch {
+      @moon-pay-sdk.Config(message) => message
+      _ => "other error"
+    } noraise {
+      _ => "no error raised"
+    }
+    assert_true(verdict.has_prefix(case.0))
+    assert_true(verdict.contains("whitespace"))
+  }
+}

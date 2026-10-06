@@ -21,7 +21,16 @@ pub fn Client::new(
   let private_key = @crypto.load_private_key_pem(config.private_key_pem) catch {
     e => raise Crypto(e)
   }
-  { config, private_key, transport, now_ms, certs: Map([]), verify_responses, }
+  let certs : Map[String, @rsa.PublicKey] = Map([])
+  // Public-key mode (public key mode): the console-issued WeChat Pay public
+  // key serves signatures directly, before any certificate lookup.
+  if !config.platform_public_key_pem.is_empty() {
+    let public_key = @crypto.load_public_key_pem(config.platform_public_key_pem) catch {
+      e => raise Crypto(e)
+    }
+    certs.set(config.platform_public_key_id.to_lower(), public_key)
+  }
+  { config, private_key, transport, now_ms, certs, verify_responses, }
 }
 
 ///|
