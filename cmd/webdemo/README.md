@@ -16,7 +16,12 @@ is enabled only when its gateway's credentials are configured (each page asks
    (`GET /api/orders/<out_trade_no>`) through `Client::query_order` every two
    seconds, and accepts WeChat Pay's signed callback
    (`POST /api/wechat/notify`) through `Client::verify_callback`, reconciling
-   the amount and acknowledging it.
+   the amount and acknowledging it. The page also has a JSAPI section:
+   `POST /api/wechat/jsapi/orders?amount_yuan=…&openid=…` places an in-WeChat
+   order through `Client::jsapi_order` and returns the signed
+   `wx.requestPayment` parameter set (`Client::jsapi_pay_params`) — paste it
+   into the WeChat devtools or drive it from a mini-program backend; the
+   order polls through the same endpoint.
 2. **`/alipay` — Alipay · page pay** — builds the signed cashier URL
    (`POST /api/alipay/orders`, `alipay.trade.page.pay`) through
    `Client::page_pay_url` and redirects the browser to it; when Alipay sends

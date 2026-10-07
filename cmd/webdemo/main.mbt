@@ -405,6 +405,12 @@ async fn route(
   } else if req.meth is @http.Post &&
     (path == "/api/orders" || path.has_prefix("/api/orders?")) {
     handle_create_order(app, req, conn)
+  } else if req.meth is @http.Post &&
+    (
+      path == "/api/wechat/jsapi/orders" ||
+      path.has_prefix("/api/wechat/jsapi/orders?")
+    ) {
+    handle_create_jsapi_order(app, req, conn)
   } else if req.meth is @http.Get && path.has_prefix("/api/orders/") {
     handle_query(app, path, conn)
   } else if req.meth is @http.Post &&
@@ -482,6 +488,100 @@ async fn handle_create_order(
         "out_trade_no": out_trade_no,
         "amount_fen": fen,
         "code_url": order.code_url(),
+      })
+    }
+    None =>
+      respond_json(conn, 502, {
+        "error": "placing the order failed (see server log)",
+      })
+  }
+}
+
+///|
+/// POST /api/wechat/jsapi/orders?amount_yuan=0.01&openid=o… — place a JSAPI
+/// order for payment inside WeChat and return the signed wx.requestPayment
+/// parameter set. The order is polled through /api/orders/<out_trade_no>
+/// like a Native order.
+async fn handle_create_jsapi_order(
+  app : App,
+  req : @http.Request,
+  conn : @http.ServerConnection,
+) -> Unit {
+  let client = match app.wechat {
+    Some(client) => client
+    None => {
+      respond_json(conn, 503, {
+        "error": "WeChat Pay is not configured (set WXPAY_* and restart)",
+      })
+      return
+    }
+  }
+  let yuan = match query_param(req.path, key="amount_yuan") {
+    Some(yuan) => yuan
+    None => "0.01"
+  }
+  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+    _ => 0
+  } noraise {
+    fen => fen
+  }
+  if fen <= 0 {
+    respond_json(conn, 400, { "error": "bad amount_yuan: \{yuan}" })
+    return
+  }
+  let openid = match query_param(req.path, key="openid") {
+    Some(openid) if openid != "" => openid
+    _ => {
+      respond_json(conn, 400, {
+        "error": "openid is required (the payer's openid under this appid)",
+      })
+      return
+    }
+  }
+  let out_trade_no = next_out_trade_no(app)
+  let order : @wechat.JsapiOrder? = try
+    client.jsapi_order(
+      out_trade_no~,
+      total=fen,
+      description="moon-pay-sdk integration test",
+      notify_url=app.notify_url,
+      openid~,
+    )
+  catch {
+    e => {
+      println("jsapi_order failed: \{e}")
+      None
+    }
+  } noraise {
+    order => Some(order)
+  }
+  match order {
+    Some(order) => {
+      let params = client.jsapi_pay_params(prepay_id=order.prepay_id()) catch {
+        e => {
+          println("jsapi_pay_params failed: \{e}")
+          respond_json(conn, 502, {
+            "error": "signing the pay params failed (see server log)",
+          })
+          return
+        }
+      }
+      app.orders.set(out_trade_no, { amount_fen: fen, notify_seen: false, })
+      println(
+        "jsapi order \{out_trade_no} \{yuan} yuan, prepay_id \{order.prepay_id()}",
+      )
+      respond_json(conn, 200, {
+        "out_trade_no": out_trade_no,
+        "amount_fen": fen,
+        "prepay_id": order.prepay_id(),
+        "pay_params": {
+          "appId": params.app_id(),
+          "timeStamp": params.timestamp(),
+          "nonceStr": params.nonce_str(),
+          "package": params.pay_package(),
+          "signType": params.sign_type(),
+          "paySign": params.pay_sign(),
+        },
       })
     }
     None =>

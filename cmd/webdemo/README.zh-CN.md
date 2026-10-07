@@ -12,7 +12,11 @@ Native（扫码）流程和支付宝电脑网站支付（page pay）流程。它
    通过 `Client::query_order` 轮询订单
    （`GET /api/orders/<out_trade_no>`）；通过 `Client::verify_callback`
    接收微信支付的签名回调（`POST /api/wechat/notify`），核对金额后应答
-   确认。
+   确认。页面还带一个 JSAPI 区块：
+   `POST /api/wechat/jsapi/orders?amount_yuan=…&openid=…` 通过
+   `Client::jsapi_order` 在微信内下单，返回签名好的
+   `wx.requestPayment` 参数集（`Client::jsapi_pay_params`）——可粘到微信
+   开发者工具验证，或作为小程序后端调用；订单走同一轮询端点。
 2. **`/alipay` — 支付宝 · 电脑网站支付** — 通过 `Client::page_pay_url`
    构造签名收银台地址（`POST /api/alipay/orders`，
    `alipay.trade.page.pay`）并把浏览器跳转过去；支付宝把用户带回
