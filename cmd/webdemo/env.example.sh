@@ -40,3 +40,28 @@ export WXPAY_API_V3_KEY=""
 # reach it for the notify path to fire; the page also polls, so a placeholder
 # still works for the QR + query flow.
 # export WXPAY_NOTIFY_URL="https://your.example.com/api/wechat/notify"
+
+# ---------------------------------------------------------------------------
+# Optional: Alipay page (desktop website) checkout, alipay.trade.page.pay.
+# With these set the page gains an Alipay panel; without them the app runs
+# WeChat-only.
+
+# The open-platform web application id, e.g. 2021000000000000
+# export ALIPAY_APPID=""
+
+# The application private key created with the Alipay key tool (密钥工具):
+# PEM text, or a path to the PEM file
+# export ALIPAY_PRIVATE_KEY=""
+
+# The Alipay public key (支付宝公钥) shown in the open-platform console under
+# 接口加签方式 → 公钥模式 — NOT your own application public key:
+# PEM text, or a path to the PEM file
+# export ALIPAY_PUBLIC_KEY=""
+
+# Optional: gateway base URL (default: https://openapi.alipay.com/gateway.do;
+# point it at the sandbox gateway when using sandbox credentials).
+# export ALIPAY_GATEWAY_URL=""
+
+# Optional: async notify URL Alipay POSTs to. The page also polls
+# query_order, so a placeholder still works for the redirect + query flow.
+# export ALIPAY_NOTIFY_URL="https://your.example.com/api/alipay/notify"

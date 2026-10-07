@@ -130,6 +130,84 @@ else
 fi
 
 echo
+echo "== ALIPAY_* (optional Alipay panel) =="
+if [ -z "${ALIPAY_APPID:-}" ] && [ -z "${ALIPAY_PRIVATE_KEY:-}" ] && [ -z "${ALIPAY_PUBLIC_KEY:-}" ]; then
+  echo '  not configured — the Alipay panel stays disabled (set ALIPAY_* to enable it)'
+else
+  if [ -n "${ALIPAY_APPID:-}" ]; then
+    printf '  appid: %s\n' "$ALIPAY_APPID"
+  else
+    check 'ALIPAY_APPID is set' 0
+  fi
+
+  ali_priv_pub=""
+  if [ -z "${ALIPAY_PRIVATE_KEY:-}" ]; then
+    check 'ALIPAY_PRIVATE_KEY is set' 0
+  elif [[ "$ALIPAY_PRIVATE_KEY" == *'BEGIN PUBLIC KEY'* ]] ||
+    { [ -r "$ALIPAY_PRIVATE_KEY" ] && grep -q 'BEGIN PUBLIC KEY' "$ALIPAY_PRIVATE_KEY" 2>/dev/null; }; then
+    echo '  FAIL  ALIPAY_PRIVATE_KEY holds a PUBLIC key — it needs the application'
+    echo '        private key generated with the Alipay key tool (密钥工具)'
+    fails=$((fails + 1))
+  else
+    if [[ "$ALIPAY_PRIVATE_KEY" == -----BEGIN* ]]; then
+      echo '  source: inline PEM'
+      ali_priv_pub=$(printf '%s\n' "$ALIPAY_PRIVATE_KEY" | openssl pkey -in /dev/stdin -pubout 2>/dev/null)
+    elif [ -r "$ALIPAY_PRIVATE_KEY" ]; then
+      check 'ALIPAY_PRIVATE_KEY file is readable' 1
+      ali_priv_pub=$(openssl pkey -in "$ALIPAY_PRIVATE_KEY" -pubout 2>/dev/null)
+    else
+      check "ALIPAY_PRIVATE_KEY file is readable ($ALIPAY_PRIVATE_KEY)" 0
+    fi
+    if [ -n "$ali_priv_pub" ]; then
+      check 'ALIPAY_PRIVATE_KEY parses as an RSA private key' 1
+      priv_bits=$(printf '%s' "$ali_priv_pub" | openssl pkey -pubin -text -noout 2>/dev/null | head -1)
+      case "$priv_bits" in
+      *2048*) : ;;
+      *) echo '  WARN  Alipay expects a 2048-bit RSA2 key; other sizes may be rejected' ;;
+      esac
+    else
+      check 'ALIPAY_PRIVATE_KEY parses as an RSA private key (PEM text or readable file path)' 0
+    fi
+  fi
+
+  ali_pub_fp=""
+  if [ -z "${ALIPAY_PUBLIC_KEY:-}" ]; then
+    check 'ALIPAY_PUBLIC_KEY is set' 0
+  elif [[ "$ALIPAY_PUBLIC_KEY" == *'BEGIN PRIVATE KEY'* ]] ||
+    { [ -r "$ALIPAY_PUBLIC_KEY" ] && grep -q 'BEGIN.*PRIVATE KEY' "$ALIPAY_PUBLIC_KEY" 2>/dev/null; }; then
+    echo '  FAIL  ALIPAY_PUBLIC_KEY holds a PRIVATE key — it needs the Alipay'
+    echo '        public key (支付宝公钥) from the open-platform console, NOT'
+    echo '        the application key pair you generated'
+    fails=$((fails + 1))
+  else
+    if [[ "$ALIPAY_PUBLIC_KEY" == -----BEGIN* ]]; then
+      ali_pub_fp=$(printf '%s\n' "$ALIPAY_PUBLIC_KEY" | openssl pkey -pubin -in /dev/stdin 2>/dev/null | openssl md5 2>/dev/null | sed 's/^.*= //')
+    elif [ -r "$ALIPAY_PUBLIC_KEY" ]; then
+      check 'ALIPAY_PUBLIC_KEY file is readable' 1
+      ali_pub_fp=$(openssl pkey -pubin -in "$ALIPAY_PUBLIC_KEY" 2>/dev/null | openssl md5 2>/dev/null | sed 's/^.*= //')
+    else
+      check "ALIPAY_PUBLIC_KEY file is readable ($ALIPAY_PUBLIC_KEY)" 0
+    fi
+    if [ -n "$ali_pub_fp" ]; then
+      check 'ALIPAY_PUBLIC_KEY parses as a public key' 1
+    else
+      check 'ALIPAY_PUBLIC_KEY parses as a public key (PEM text or readable file path)' 0
+    fi
+  fi
+
+  if [ -n "$ali_priv_pub" ] && [ -n "$ali_pub_fp" ]; then
+    ali_priv_fp=$(printf '%s\n' "$ali_priv_pub" | openssl md5 | sed 's/^.*= //')
+    if [ "$ali_priv_fp" = "$ali_pub_fp" ]; then
+      echo '  FAIL  ALIPAY_PUBLIC_KEY is the public half of ALIPAY_PRIVATE_KEY —'
+      echo '        it must be the Alipay public key (支付宝公钥) instead'
+      fails=$((fails + 1))
+    else
+      check 'ALIPAY_PUBLIC_KEY is not the application key pair' 1
+    fi
+  fi
+fi
+
+echo
 if [ "$fails" -gt 0 ]; then
   echo "diagnose: $fails check(s) failed — fix the FAIL lines above, re-source env.sh and retry"
 else

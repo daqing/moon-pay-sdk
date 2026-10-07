@@ -23,6 +23,7 @@
   select {
     font-size: 14px; padding: 6px 10px; border: 1px solid #d7dbe0; border-radius: 8px; background: #fff;
   }
+  select:disabled { background: #f2f4f7; color: #8a919f; }
   button {
     width: 100%; padding: 10px 0; font-size: 14px; color: #fff; background: #07c160;
     border: none; border-radius: 10px; cursor: pointer;
@@ -48,9 +49,12 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #51565f;
     background: #f7f8fa; border-radius: 8px; padding: 8px 10px; white-space: pre-wrap;
   }
+  .switch { text-align: center; margin-top: 14px; font-size: 13px; }
+  .switch a { color: #1677ff; text-decoration: none; }
 </style>
 </head>
 <body>
+<div>
 <div class="card">
   <h1>微信支付 · Native 扫码</h1>
   <div class="sub">moon-pay-sdk 集成测试 — 真实网关，真实扣款，金额请选最小档</div>
@@ -77,6 +81,8 @@
     <summary>调试日志</summary>
     <div id="log"></div>
   </details>
+</div>
+<div class="switch"><a href="/alipay">支付宝 · 电脑网站支付 →</a></div>
 </div>
 
 <script src="/assets/qrcode.js"></script>
@@ -178,7 +184,21 @@
 
   $('recreate').addEventListener('click', createOrder);
   $('amount').addEventListener('change', createOrder);
-  createOrder();
+
+  (async function init() {
+    try {
+      const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
+      if (!cfg.wechat) {
+        $('recreate').disabled = true;
+        $('amount').disabled = true;
+        setStatus('error', '未配置 WXPAY_* 环境变量，本页停用');
+        return;
+      }
+    } catch (e) {
+      log('读取 /api/config 失败: ' + e);
+    }
+    createOrder();
+  })();
 </script>
 </body>
 </html>

@@ -1,15 +1,24 @@
 ///|
 /// A minimal web app for manually integration-testing moon-pay-sdk's WeChat
-/// Pay Native (QR) checkout against the real gateway. It serves one page that
-/// creates an order, renders the returned `code_url` as a QR code and polls
-/// until WeChat Pay reports the order paid. Credentials come from WXPAY_*
-/// environment variables so none of them live in this repository.
+/// Pay Native (QR) checkout and Alipay page (desktop website) checkout
+/// against the real gateways. It serves one page per gateway:
+///
+/// - `/` (WeChat): create an order, render the returned `code_url` as a QR
+///   code and poll until WeChat Pay reports the order paid.
+/// - `/alipay`: create a page-pay order (`alipay.trade.page.pay`) and
+///   redirect the browser to the returned cashier URL; when Alipay redirects
+///   back to `/alipay?alipay_order=<out_trade_no>` the page resumes polling.
+///
+/// Each page is enabled only when its gateway's credentials are present, so
+/// the app runs with either gateway alone. Credentials come from WXPAY_* /
+/// ALIPAY_* environment variables so none of them live in this repository.
 ///
 /// Run from the repository root:
 ///
 ///     moon run cmd/webdemo
 ///
-/// then open <http://127.0.0.1:1943> and scan the QR code with WeChat.
+/// then open <http://127.0.0.1:1943> (WeChat) or
+/// <http://127.0.0.1:1943/alipay> (Alipay).
 
 ///|
 /// One order this app has placed, keyed by out_trade_no.
@@ -20,8 +29,10 @@ priv struct OrderRec {
 
 ///|
 priv struct App {
-  client : @wechat.Client
+  wechat : @wechat.Client?
   notify_url : String
+  alipay : @alipay.Client?
+  alipay_notify_url : String
   orders : Map[String, OrderRec]
   mut seq : Int
 }
@@ -31,11 +42,35 @@ const LISTEN_PORT : Int = 1943
 
 ///|
 async fn main {
-  let app = match load_app() {
-    Some(app) => app
-    None => return
+  let wechat = load_wechat()
+  let alipay = load_alipay()
+  if wechat is None && alipay is None {
+    return
+  }
+  if wechat is None {
+    println("note: WeChat Pay page disabled (WXPAY_* incomplete)")
+  }
+  if alipay is None {
+    println("note: Alipay page disabled (ALIPAY_* incomplete)")
+  }
+  let (wechat_client, notify_url) = match wechat {
+    Some((client, notify_url)) => (Some(client), notify_url)
+    None => (None, "")
+  }
+  let (alipay_client, alipay_notify_url) = match alipay {
+    Some((client, notify_url)) => (Some(client), notify_url)
+    None => (None, "")
+  }
+  let app : App = {
+    wechat: wechat_client,
+    notify_url,
+    alipay: alipay_client,
+    alipay_notify_url,
+    orders: Map([]),
+    seq: 0,
   }
   let index_html = read_asset("cmd/webdemo/assets/index.html")
+  let alipay_html = read_asset("cmd/webdemo/assets/alipay.html")
   let qrcode_js = read_asset("cmd/webdemo/assets/qrcode.js")
   let server = @http.Server::Server(
     @socket.Addr::parse("0.0.0.0:\{LISTEN_PORT}") catch {
@@ -46,7 +81,7 @@ async fn main {
   println("listening on http://127.0.0.1:\{port} — open it in a browser")
   server.run_forever(
     async fn(req, reader, conn) {
-      route(app, index_html, qrcode_js, req, reader, conn)
+      route(app, index_html, alipay_html, qrcode_js, req, reader, conn)
     },
     allow_failure=true,
   ) catch {
@@ -55,37 +90,16 @@ async fn main {
 }
 
 ///|
-/// Read credentials from the environment, print what is missing, and build
-/// the WeChat Pay client. Returns None when the app cannot start.
-async fn load_app() -> App? {
+/// Read the WXPAY_* credentials from the environment, print what is missing,
+/// and build the WeChat Pay client. Returns None when the page stays
+/// disabled.
+async fn load_wechat() -> (@wechat.Client, String)? {
   let missing : Array[String] = []
   let appid = require_env("WXPAY_APPID", missing)
   let mchid = require_env("WXPAY_MCHID", missing)
   let serial_no = require_env("WXPAY_SERIAL_NO", missing)
   let api_v3_key = require_env("WXPAY_API_V3_KEY", missing)
-  let private_key_pem = match @env.get_env_var("WXPAY_PRIVATE_KEY") {
-    Some(raw) =>
-      if raw == "" {
-        missing.push("WXPAY_PRIVATE_KEY (set but empty)")
-        None
-      } else if raw.has_prefix("-----BEGIN") {
-        Some(raw)
-      } else {
-        match read_file_text(raw) {
-          Some(pem) => Some(pem)
-          None => {
-            missing.push(
-              "WXPAY_PRIVATE_KEY (not a PEM and not a readable file: \{raw})",
-            )
-            None
-          }
-        }
-      }
-    None => {
-      missing.push("WXPAY_PRIVATE_KEY")
-      None
-    }
-  }
+  let private_key_pem = load_pem_env("WXPAY_PRIVATE_KEY", missing)
   let base_url = match @env.get_env_var("WXPAY_BASE_URL") {
     Some(url) => url
     None => "https://api.mch.weixin.qq.com"
@@ -203,7 +217,74 @@ async fn load_app() -> App? {
   } else {
     println("verify mode: public-key mode (\{pub_id})")
   }
-  Some({ client, notify_url, orders: Map([]), seq: 0, })
+  Some((client, notify_url))
+}
+
+///|
+/// Read the ALIPAY_* credentials the same way as the WeChat ones and build
+/// the Alipay client. Returns None when the page stays disabled.
+async fn load_alipay() -> (@alipay.Client, String)? {
+  let missing : Array[String] = []
+  let appid = require_env("ALIPAY_APPID", missing)
+  let private_key_pem = load_pem_env("ALIPAY_PRIVATE_KEY", missing)
+  let alipay_public_key_pem = load_pem_env("ALIPAY_PUBLIC_KEY", missing)
+  let gateway_url = match @env.get_env_var("ALIPAY_GATEWAY_URL") {
+    Some(url) => url
+    None => "https://openapi.alipay.com/gateway.do"
+  }
+  let notify_url = match @env.get_env_var("ALIPAY_NOTIFY_URL") {
+    Some(url) => url
+    None => "https://example.com/moon-pay-sdk/alipay/notify"
+  }
+  if missing.length() > 0 ||
+    appid is None ||
+    private_key_pem is None ||
+    alipay_public_key_pem is None {
+    println("Alipay page disabled; to enable it set:")
+    for name in missing {
+      println("  \{name}")
+    }
+    println("ALIPAY_APPID is the open-platform web-application id (2021...),")
+    println(
+      "ALIPAY_PRIVATE_KEY the application private key in PEM (text or file path),",
+    )
+    println(
+      "ALIPAY_PUBLIC_KEY the Alipay public key shown in the open-platform console",
+    )
+    println(
+      "(公钥模式) — not your own application public key; PEM text or file path.",
+    )
+    println(
+      "Optional: ALIPAY_GATEWAY_URL (default production), ALIPAY_NOTIFY_URL.",
+    )
+    println(
+      "Note: variables must be exported (export ALIPAY_...) — a shell variable",
+    )
+    println(
+      "without `export` is invisible to the webdemo, and a sourced file must",
+    )
+    println("be re-sourced after editing.")
+    return None
+  }
+  let config = @alipay.Config::new(
+    app_id=appid.unwrap(),
+    private_key_pem=private_key_pem.unwrap(),
+    alipay_public_key_pem=alipay_public_key_pem.unwrap(),
+    gateway_url~,
+  )
+  let client = @alipay.Client::new(
+    config~,
+    transport=@transport.HttpClient::new(),
+  ) catch {
+    e => {
+      println("alipay client construction failed: \{e}")
+      return None
+    }
+  }
+  println("alipay appid      : \{appid.unwrap()}")
+  println("alipay gateway    : \{gateway_url}")
+  println("alipay notify_url : \{notify_url}")
+  Some((client, notify_url))
 }
 
 ///|
@@ -217,6 +298,32 @@ fn require_env(name : String, missing : Array[String]) -> String? {
         None
       } else {
         Some(value)
+      }
+    None => {
+      missing.push(name)
+      None
+    }
+  }
+}
+
+///|
+/// Read a PEM-valued variable: inline PEM text, or a path to a PEM file.
+async fn load_pem_env(name : String, missing : Array[String]) -> String? {
+  match @env.get_env_var(name) {
+    Some(raw) =>
+      if raw == "" {
+        missing.push("\{name} (set but empty)")
+        None
+      } else if raw.has_prefix("-----BEGIN") {
+        Some(raw)
+      } else {
+        match read_file_text(raw) {
+          Some(pem) => Some(pem)
+          None => {
+            missing.push("\{name} (not a PEM and not a readable file: \{raw})")
+            None
+          }
+        }
       }
     None => {
       missing.push(name)
@@ -266,6 +373,7 @@ async fn read_asset(path : String) -> String {
 async fn route(
   app : App,
   index_html : String,
+  alipay_html : String,
   qrcode_js : String,
   req : @http.Request,
   reader : &@io.Reader,
@@ -277,20 +385,45 @@ async fn route(
     handle_notify(app, req, body, conn)
     return
   }
+  if req.meth is @http.Post && path == "/api/alipay/notify" {
+    let body = reader.read_all().binary()
+    handle_alipay_notify(app, body, conn)
+    return
+  }
   // Drain the body so keep-alive connections stay in sync.
   let _ = reader.read_all()
-  if req.meth is @http.Get && (path == "/" || path == "/index.html") {
+  if req.meth is @http.Get &&
+    (path == "/" || path.has_prefix("/?") || path == "/index.html") {
     respond_text(conn, 200, "text/html; charset=utf-8", index_html)
+  } else if req.meth is @http.Get &&
+    (path == "/alipay" || path.has_prefix("/alipay?")) {
+    respond_text(conn, 200, "text/html; charset=utf-8", alipay_html)
   } else if req.meth is @http.Get && path == "/assets/qrcode.js" {
     respond_text(conn, 200, "text/javascript; charset=utf-8", qrcode_js)
+  } else if req.meth is @http.Get && path == "/api/config" {
+    handle_config(app, conn)
   } else if req.meth is @http.Post &&
     (path == "/api/orders" || path.has_prefix("/api/orders?")) {
     handle_create_order(app, req, conn)
   } else if req.meth is @http.Get && path.has_prefix("/api/orders/") {
     handle_query(app, path, conn)
+  } else if req.meth is @http.Post &&
+    (path == "/api/alipay/orders" || path.has_prefix("/api/alipay/orders?")) {
+    handle_create_alipay_order(app, req, conn)
+  } else if req.meth is @http.Get && path.has_prefix("/api/alipay/orders/") {
+    handle_alipay_query(app, path, conn)
   } else {
     respond_text(conn, 404, "text/plain; charset=utf-8", "not found\n")
   }
+}
+
+///|
+/// GET /api/config — which gateway pages are enabled.
+async fn handle_config(app : App, conn : @http.ServerConnection) -> Unit {
+  respond_json(conn, 200, {
+    "wechat": app.wechat is Some(_),
+    "alipay": app.alipay is Some(_),
+  })
 }
 
 ///|
@@ -301,6 +434,15 @@ async fn handle_create_order(
   req : @http.Request,
   conn : @http.ServerConnection,
 ) -> Unit {
+  let client = match app.wechat {
+    Some(client) => client
+    None => {
+      respond_json(conn, 503, {
+        "error": "WeChat Pay is not configured (set WXPAY_* and restart)",
+      })
+      return
+    }
+  }
   let yuan = match query_param(req.path, key="amount_yuan") {
     Some(yuan) => yuan
     None => "0.01"
@@ -316,7 +458,7 @@ async fn handle_create_order(
   }
   let out_trade_no = next_out_trade_no(app)
   let order : @wechat.NativeOrder? = try
-    app.client.native_order(
+    client.native_order(
       out_trade_no~,
       total=fen,
       description="moon-pay-sdk integration test",
@@ -357,6 +499,15 @@ async fn handle_query(
   path : String,
   conn : @http.ServerConnection,
 ) -> Unit {
+  let client = match app.wechat {
+    Some(client) => client
+    None => {
+      respond_json(conn, 503, {
+        "error": "WeChat Pay is not configured (set WXPAY_* and restart)",
+      })
+      return
+    }
+  }
   let out_trade_no = path["/api/orders/".length():].to_owned()
   let rec = match app.orders.get(out_trade_no) {
     Some(rec) => rec
@@ -366,7 +517,7 @@ async fn handle_query(
     }
   }
   let status : @wechat.OrderStatus? = try
-    app.client.query_order(out_trade_no~)
+    client.query_order(out_trade_no~)
   catch {
     e => {
       println("query_order failed: \{e}")
@@ -405,12 +556,20 @@ async fn handle_notify(
   body : Bytes,
   conn : @http.ServerConnection,
 ) -> Unit {
+  let client = match app.wechat {
+    Some(client) => client
+    None => {
+      let (status, ack) = @wechat.ack_failure(message="wechat not configured")
+      respond_json_raw(conn, status, ack)
+      return
+    }
+  }
   let headers : Array[(String, String)] = []
   for key, value in req.headers {
     headers.push((key.to_string(), value))
   }
   let notification : @wechat.Notification? = try
-    app.client.verify_callback(headers, body)
+    client.verify_callback(headers, body)
   catch {
     e => {
       println("notify rejected: \{e}")
@@ -448,6 +607,196 @@ async fn handle_notify(
 }
 
 ///|
+/// POST /api/alipay/orders?amount_yuan=0.01 — build the signed redirect URL
+/// for a page-pay order (alipay.trade.page.pay).
+async fn handle_create_alipay_order(
+  app : App,
+  req : @http.Request,
+  conn : @http.ServerConnection,
+) -> Unit {
+  let client = match app.alipay {
+    Some(client) => client
+    None => {
+      respond_json(conn, 503, {
+        "error": "Alipay is not configured (set ALIPAY_* and restart)",
+      })
+      return
+    }
+  }
+  let yuan = match query_param(req.path, key="amount_yuan") {
+    Some(yuan) => yuan
+    None => "0.01"
+  }
+  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+    _ => 0
+  } noraise {
+    fen => fen
+  }
+  if fen <= 0 {
+    respond_json(conn, 400, { "error": "bad amount_yuan: \{yuan}" })
+    return
+  }
+  let out_trade_no = next_out_trade_no(app)
+  let return_url = "http://\{request_host(req)}/alipay?alipay_order=\{out_trade_no}"
+  let pay_url : String? = try
+    client.page_pay_url(
+      out_trade_no~,
+      total_fen=fen,
+      subject="moon-pay-sdk integration test",
+      notify_url=app.alipay_notify_url,
+      return_url~,
+    )
+  catch {
+    e => {
+      println("page_pay_url failed: \{e}")
+      None
+    }
+  } noraise {
+    url => Some(url)
+  }
+  match pay_url {
+    Some(url) => {
+      app.orders.set(out_trade_no, { amount_fen: fen, notify_seen: false, })
+      println(
+        "alipay order \{out_trade_no} \{yuan} yuan, return_url \{return_url}",
+      )
+      respond_json(conn, 200, {
+        "out_trade_no": out_trade_no,
+        "amount_fen": fen,
+        "pay_url": url,
+      })
+    }
+    None =>
+      respond_json(conn, 502, {
+        "error": "building the pay URL failed (see server log)",
+      })
+  }
+}
+
+///|
+/// GET /api/alipay/orders/<out_trade_no> — query Alipay for the live trade
+/// state so the page can poll without a publicly reachable notify URL.
+async fn handle_alipay_query(
+  app : App,
+  path : String,
+  conn : @http.ServerConnection,
+) -> Unit {
+  let client = match app.alipay {
+    Some(client) => client
+    None => {
+      respond_json(conn, 503, {
+        "error": "Alipay is not configured (set ALIPAY_* and restart)",
+      })
+      return
+    }
+  }
+  let out_trade_no = path["/api/alipay/orders/".length():].to_owned()
+  let rec = match app.orders.get(out_trade_no) {
+    Some(rec) => rec
+    None => {
+      respond_json(conn, 404, { "error": "unknown out_trade_no" })
+      return
+    }
+  }
+  let status : @alipay.OrderStatus? = try
+    client.query_order(out_trade_no~)
+  catch {
+    e => {
+      println("alipay query_order failed: \{e}")
+      None
+    }
+  } noraise {
+    status => Some(status)
+  }
+  let status = match status {
+    Some(status) => status
+    None => {
+      respond_json(conn, 502, { "error": "query failed (see server log)" })
+      return
+    }
+  }
+  let send_pay_date = match status.send_pay_date() {
+    Some(date) => date
+    None => ""
+  }
+  let body : Json = {
+    "out_trade_no": status.out_trade_no(),
+    "trade_status": trade_status_wire(status.trade_status()),
+    "total_fen": status.total_fen(),
+    "send_pay_date": send_pay_date,
+    "notify_seen": rec.notify_seen,
+  }
+  respond_json(conn, 200, body)
+}
+
+///|
+/// POST /api/alipay/notify — Alipay's signed async notification. Verify the
+/// RSA2 signature and app_id, remember, and answer "success" so Alipay stops
+/// retrying.
+async fn handle_alipay_notify(
+  app : App,
+  body : Bytes,
+  conn : @http.ServerConnection,
+) -> Unit {
+  let client = match app.alipay {
+    Some(client) => client
+    None => {
+      respond_text(conn, 200, "text/plain; charset=utf-8", "failure\n")
+      return
+    }
+  }
+  let text = @utf8.decode_lossy(body[:])
+  let form = @alipay.parse_form_params(text)
+  let notify : @alipay.NotifyResult? = try client.verify_notify(form) catch {
+    e => {
+      println("alipay notify rejected: \{e}")
+      None
+    }
+  } noraise {
+    notify => Some(notify)
+  }
+  match notify {
+    Some(notify) => {
+      let out_trade_no = notify.out_trade_no()
+      match app.orders.get(out_trade_no) {
+        Some(rec) => {
+          rec.notify_seen = true
+          if !notify.amount_matches(rec.amount_fen) {
+            println(
+              "alipay notify amount mismatch for \{out_trade_no}: \{notify.total_amount()}, expected \{rec.amount_fen} fen",
+            )
+          }
+        }
+        None => println("alipay notify for unknown order \{out_trade_no}")
+      }
+      println(
+        "alipay notify verified: \{out_trade_no} \{trade_status_wire(notify.trade_status())}",
+      )
+      respond_text(
+        conn,
+        200,
+        "text/plain; charset=utf-8",
+        @alipay.ack_success(),
+      )
+    }
+    None => respond_text(conn, 200, "text/plain; charset=utf-8", "failure\n")
+  }
+}
+
+///|
+/// The Host header the browser used, so the Alipay return URL lands back on
+/// the same origin; falls back to the local listener.
+fn request_host(req : @http.Request) -> String {
+  for key, value in req.headers {
+    let name = key.to_string()
+    if name == "Host" || name == "host" {
+      return value
+    }
+  }
+  "127.0.0.1:\{LISTEN_PORT}"
+}
+
+///|
 fn next_out_trade_no(app : App) -> String {
   app.seq = app.seq + 1
   "IT\{@async.now()}\{pad(app.seq, 4)}"
@@ -477,6 +826,18 @@ fn trade_state_wire(state : @wechat.TradeState) -> String {
     @wechat.UserPaying => "USERPAYING"
     @wechat.PayError => "PAYERROR"
     @wechat.Unknown(s) => s
+  }
+}
+
+///|
+/// Map a TradeStatus back to the wire string the gateway uses.
+fn trade_status_wire(status : @alipay.TradeStatus) -> String {
+  match status {
+    WaitBuyerPay => "WAIT_BUYER_PAY"
+    TradeClosed => "TRADE_CLOSED"
+    TradeSuccess => "TRADE_SUCCESS"
+    TradeFinished => "TRADE_FINISHED"
+    Unknown(s) => s
   }
 }
 
