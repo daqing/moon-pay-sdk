@@ -14,6 +14,8 @@
 
 - **Native 支付** — 创建订单并返回 `code_url`，在网站上渲染成二维码供用户扫码
 - **H5 支付** — 创建订单并返回支付链接，在移动端浏览器中拉起微信支付
+- **JSAPI 支付** — 微信内下单（小程序或公众号网页），传入付款人 openid，
+  生成已签名的 `wx.requestPayment` 参数集
 - **查单** — 按商户订单号或交易单号查询订单，用于回调丢失时对账
 - **回调处理** — 使用平台证书验签，解密 AES-256-GCM 报文并解析支付结果
 - **公钥模式** — 也可使用商户控制台下发的微信支付公钥（`PUB_KEY_ID_...`）验签，无需下载平台证书
@@ -74,6 +76,18 @@ async fn main {
     notify_url="https://example.com/callback/wechat",
   )
   println("QR content: \{order.code_url}")
+
+  // JSAPI 支付（小程序 / 微信内网页）：传付款人 openid，
+  // 把签名好的参数集交给 wx.requestPayment。
+  let jsapi = wechat.jsapi_order(
+    out_trade_no="hackathon-20261001-0002",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    openid="oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
+  )
+  let pay = wechat.jsapi_pay_params(prepay_id=jsapi.prepay_id)
+  println("wx.requestPayment timeStamp: \{pay.timestamp}")
 
   // 回调可能丢失——主动查单对账。
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
@@ -155,7 +169,7 @@ async fn handle_alipay_notify(
 你的 MoonBit 应用
           │
 moon-pay-sdk
-├── wechat      Native / H5 支付、查单、回调验签与解密
+├── wechat      Native / H5 / JSAPI 支付、查单、回调验签与解密
 ├── alipay      电脑 / 手机网站支付、查单、异步通知验签
 ├── crypto      RSA-SHA256 签名与验签、X.509 解析、AES-256-GCM（mooncrypt）
 └── transport   基于 moonbitlang/async 的 HTTPS（Linux epoll / macOS kqueue）
@@ -174,7 +188,7 @@ moon-pay-sdk
 ## Roadmap
 
 - **黑客松版本** — 见[功能](#功能)所列范围
-- **后续** — 退款（微信 v3、`alipay.trade.refund`）、对账单下载、JSAPI / 小程序支付、平台证书自动更新、对接沙箱的集成测试
+- **后续** — 退款（微信 v3、`alipay.trade.refund`）、对账单下载、平台证书自动更新、对接沙箱的集成测试
 
 ## 许可证
 

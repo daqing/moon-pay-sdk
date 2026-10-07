@@ -40,6 +40,8 @@ pub struct Client {
   verify_responses : Bool
 }
 pub async fn Client::h5_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, payer_client_ip~ : String) -> H5Order raise @moon-pay-sdk.SdkError
+pub async fn Client::jsapi_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, openid~ : String) -> JsapiOrder raise @moon-pay-sdk.SdkError
+pub async fn Client::jsapi_pay_params(Self, prepay_id~ : String) -> JsapiPayParams raise @moon-pay-sdk.SdkError
 pub async fn Client::native_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String) -> NativeOrder raise @moon-pay-sdk.SdkError
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64, verify_responses? : Bool) -> Self raise @moon-pay-sdk.SdkError
 pub async fn Client::parse_notification(Self, Array[(String, String)], Bytes) -> Notification raise @moon-pay-sdk.SdkError
@@ -67,6 +69,26 @@ pub(all) struct H5Order {
   h5_url : String
 }
 pub fn H5Order::h5_url(Self) -> String
+
+pub(all) struct JsapiOrder {
+  prepay_id : String
+}
+pub fn JsapiOrder::prepay_id(Self) -> String
+
+pub(all) struct JsapiPayParams {
+  app_id : String
+  timestamp : String
+  nonce_str : String
+  pay_package : String
+  sign_type : String
+  pay_sign : String
+}
+pub fn JsapiPayParams::app_id(Self) -> String
+pub fn JsapiPayParams::nonce_str(Self) -> String
+pub fn JsapiPayParams::pay_package(Self) -> String
+pub fn JsapiPayParams::pay_sign(Self) -> String
+pub fn JsapiPayParams::sign_type(Self) -> String
+pub fn JsapiPayParams::timestamp(Self) -> String
 
 pub(all) struct NativeOrder {
   code_url : String

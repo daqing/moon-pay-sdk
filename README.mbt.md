@@ -25,6 +25,9 @@ and the pure-MoonBit cryptography of
   code on your website
 - **H5 payment** — create an order and get a URL that opens WeChat Pay in a
   mobile browser
+- **JSAPI payment** — create an in-WeChat order (mini-program or
+  official-account page) with the payer's openid, and build the signed
+  `wx.requestPayment` parameter set
 - **Order query** — look up an order by out-trade number or transaction ID, to
   reconcile missed callbacks
 - **Callback handling** — verify the callback signature against platform
@@ -96,6 +99,18 @@ async fn main {
     notify_url="https://example.com/callback/wechat",
   )
   println("QR content: \{order.code_url()}")
+
+  // JSAPI payment (mini-program / in-WeChat page): pass the payer's openid
+  // and hand the signed parameter set to wx.requestPayment.
+  let jsapi = wechat.jsapi_order(
+    out_trade_no="hackathon-20261001-0002",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    openid="oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
+  )
+  let pay = wechat.jsapi_pay_params(prepay_id=jsapi.prepay_id())
+  println("wx.requestPayment timeStamp: \{pay.timestamp()}")
 
   // Callbacks can get lost — query to reconcile.
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
@@ -185,7 +200,7 @@ async fn handle_alipay_notify(
 your MoonBit application
           │
 moon-pay-sdk
-├── wechat      Native / H5 payment, order query, callback verify & decrypt
+├── wechat      Native / H5 / JSAPI payment, order query, callback verify & decrypt
 ├── alipay      page / wap payment, order query, async notification verify
 ├── crypto      RSA-SHA256 sign & verify, X.509 parsing, AES-256-GCM (mooncrypt)
 └── transport   HTTPS over moonbitlang/async (epoll on Linux, kqueue on macOS)
@@ -215,9 +230,9 @@ Design notes:
 ## Roadmap
 
 - **Hackathon release** — the feature set listed under [Features](#features)
-- **Next** — refunds (WeChat v3, `alipay.trade.refund`), bill download, JSAPI
-  / mini-program payments, platform-certificate auto refresh, integration
-  tests against provider sandboxes
+- **Next** — refunds (WeChat v3, `alipay.trade.refund`), bill download,
+  platform-certificate auto refresh, integration tests against provider
+  sandboxes
 
 ## License
 
