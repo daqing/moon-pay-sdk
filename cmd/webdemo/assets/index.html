@@ -77,6 +77,28 @@
   <div class="meta" style="margin-top:14px">订单号 <b id="outTradeNo">—</b></div>
   <div class="meta">金额 <b id="amountText">—</b></div>
 
+  <details id="jsapiBox" style="margin-top:14px">
+    <summary>JSAPI 下单（小程序 / 微信内网页）</summary>
+    <div class="row" style="margin-top:10px">
+      <input id="openid" type="text" placeholder="付款人 openid（o 开头）" style="flex:1; font-size:13px; padding:6px 10px; border:1px solid #d7dbe0; border-radius:8px;">
+    </div>
+    <button id="jsapiPay" style="margin-top:10px">创建 JSAPI 订单</button>
+    <div id="jsapiStatus" class="status" style="display:none"></div>
+    <pre id="jsapiResult" class="hidden" style="margin:8px 0 0; font-size:11px; line-height:1.5; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#51565f; background:#f7f8fa; border-radius:8px; padding:8px 10px; white-space:pre-wrap; word-break:break-all;"></pre>
+    <div class="meta" style="margin-top:6px">下单后轮询同一订单号；参数集可直接粘进微信开发者工具的 <b>wx.requestPayment</b> 验证。</div>
+  </details>
+
+  <details id="miniappBox" style="margin-top:8px">
+    <summary>小程序下单（wx.login code 一步支付）</summary>
+    <div class="row" style="margin-top:10px">
+      <input id="jscode" type="text" placeholder="wx.login 返回的 code（一次性，5 分钟内有效）" style="flex:1; font-size:13px; padding:6px 10px; border:1px solid #d7dbe0; border-radius:8px;">
+    </div>
+    <button id="miniappPay" style="margin-top:10px">小程序 code 下单</button>
+    <div id="miniappStatus" class="status" style="display:none"></div>
+    <pre id="miniappResult" class="hidden" style="margin:8px 0 0; font-size:11px; line-height:1.5; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#51565f; background:#f7f8fa; border-radius:8px; padding:8px 10px; white-space:pre-wrap; word-break:break-all;"></pre>
+    <div class="meta" style="margin-top:6px">需配置 <b>WXPAY_APP_SECRET</b>；服务端用 code 换 openid 并直接下单。</div>
+  </details>
+
   <details>
     <summary>调试日志</summary>
     <div id="log"></div>
@@ -182,20 +204,113 @@
     }
   }
 
-  $('recreate').addEventListener('click', createOrder);
-  $('amount').addEventListener('change', createOrder);
-
-  (async function init() {
+  async function createJsapiOrder() {
+    const openidEl = $('openid');
+    const openid = openidEl.value.trim();
+    const resultEl = $('jsapiResult');
+    const statusEl = $('jsapiStatus');
+    resultEl.classList.add('hidden');
+    statusEl.style.display = 'none';
+    if (!openid) {
+      statusEl.style.display = '';
+      statusEl.className = 'status error';
+      statusEl.textContent = '请先填入付款人 openid';
+      return;
+    }
+    const yuan = $('amount').value;
     try {
-      const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
-      if (!cfg.wechat) {
-        $('recreate').disabled = true;
-        $('amount').disabled = true;
-        setStatus('error', '未配置 WXPAY_* 环境变量，本页停用');
+      const res = await fetch('/api/wechat/jsapi/orders?amount_yuan=' + encodeURIComponent(yuan) + '&openid=' + encodeURIComponent(openid), { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.style.display = '';
+        statusEl.className = 'status error';
+        statusEl.textContent = 'JSAPI 下单失败';
+        log('JSAPI 下单失败: HTTP ' + res.status + ' ' + JSON.stringify(data));
         return;
       }
+      statusEl.style.display = '';
+      statusEl.className = 'status waiting';
+      statusEl.textContent = '已创建 ' + data.out_trade_no + '（prepay_id 已签发）';
+      resultEl.classList.remove('hidden');
+      resultEl.textContent = 'wx.requestPayment 参数：\n' + JSON.stringify(data.pay_params, null, 2);
+      log('JSAPI 下单成功: ' + data.out_trade_no + ' prepay_id=' + data.prepay_id);
+      stopPoll();
+      pollTimer = setInterval(() => pollStatus(data.out_trade_no), 2000);
+      pollStatus(data.out_trade_no);
+    } catch (e) {
+      statusEl.style.display = '';
+      statusEl.className = 'status error';
+      statusEl.textContent = '网络错误，请确认服务仍在运行';
+      log('fetch /api/wechat/jsapi/orders 失败: ' + e);
+    }
+  }
+
+  async function createMiniappOrder() {
+    const codeEl = $('jscode');
+    const jsCode = codeEl.value.trim();
+    const resultEl = $('miniappResult');
+    const statusEl = $('miniappStatus');
+    resultEl.classList.add('hidden');
+    statusEl.style.display = 'none';
+    if (!jsCode) {
+      statusEl.style.display = '';
+      statusEl.className = 'status error';
+      statusEl.textContent = '请先填入 wx.login 返回的 code';
+      return;
+    }
+    const yuan = $('amount').value;
+    try {
+      const res = await fetch('/api/wechat/miniapp/orders?amount_yuan=' + encodeURIComponent(yuan) + '&js_code=' + encodeURIComponent(jsCode), { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.style.display = '';
+        statusEl.className = 'status error';
+        statusEl.textContent = '小程序下单失败';
+        log('小程序下单失败: HTTP ' + res.status + ' ' + JSON.stringify(data));
+        return;
+      }
+      statusEl.style.display = '';
+      statusEl.className = 'status waiting';
+      statusEl.textContent = '已创建 ' + data.out_trade_no + '（openid ' + data.openid + '）';
+      resultEl.classList.remove('hidden');
+      resultEl.textContent = 'wx.requestPayment 参数：\n' + JSON.stringify(data.pay_params, null, 2);
+      log('小程序下单成功: ' + data.out_trade_no + ' openid=' + data.openid + ' prepay_id=' + data.prepay_id);
+      stopPoll();
+      pollTimer = setInterval(() => pollStatus(data.out_trade_no), 2000);
+      pollStatus(data.out_trade_no);
+    } catch (e) {
+      statusEl.style.display = '';
+      statusEl.className = 'status error';
+      statusEl.textContent = '网络错误，请确认服务仍在运行';
+      log('fetch /api/wechat/miniapp/orders 失败: ' + e);
+    }
+  }
+
+  $('recreate').addEventListener('click', createOrder);
+  $('amount').addEventListener('change', createOrder);
+  $('jsapiPay').addEventListener('click', createJsapiOrder);
+  $('miniappPay').addEventListener('click', createMiniappOrder);
+
+  (async function init() {
+    let cfg = { wechat: true, miniapp: true, alipay: true };
+    try {
+      cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
     } catch (e) {
       log('读取 /api/config 失败: ' + e);
+    }
+    if (!cfg.wechat) {
+      $('recreate').disabled = true;
+      $('amount').disabled = true;
+      $('jsapiPay').disabled = true;
+      $('openid').disabled = true;
+      $('miniappPay').disabled = true;
+      $('jscode').disabled = true;
+      setStatus('error', '未配置 WXPAY_* 环境变量，本页停用');
+      return;
+    }
+    if (!cfg.miniapp) {
+      $('miniappPay').disabled = true;
+      $('jscode').disabled = true;
     }
     createOrder();
   })();

@@ -16,7 +16,16 @@ is enabled only when its gateway's credentials are configured (each page asks
    (`GET /api/orders/<out_trade_no>`) through `Client::query_order` every two
    seconds, and accepts WeChat Pay's signed callback
    (`POST /api/wechat/notify`) through `Client::verify_callback`, reconciling
-   the amount and acknowledging it.
+   the amount and acknowledging it. The page also has a JSAPI section:
+   `POST /api/wechat/jsapi/orders?amount_yuan=…&openid=…` places an in-WeChat
+   order through `Client::jsapi_order` and returns the signed
+   `wx.requestPayment` parameter set (`Client::jsapi_pay_params`) — paste it
+   into the WeChat devtools or drive it from a mini-program backend; the
+   order polls through the same endpoint. With `WXPAY_APP_SECRET` set the
+   page also gains a mini-program section:
+   `POST /api/wechat/miniapp/orders?amount_yuan=…&js_code=…` exchanges the
+   `wx.login` code for the payer's openid and places the order in one call
+   (`miniprogram.Client::pay`), returning the same signed parameter set.
 2. **`/alipay` — Alipay · page pay** — builds the signed cashier URL
    (`POST /api/alipay/orders`, `alipay.trade.page.pay`) through
    `Client::page_pay_url` and redirects the browser to it; when Alipay sends
@@ -61,6 +70,7 @@ configuration is incomplete.
 | `WXPAY_PUBLIC_KEY` | no | Public-key mode: the WeChat Pay public key downloaded from the merchant console (`pub_key.pem`), PEM text or file path |
 | `WXPAY_PUBLIC_KEY_ID` | no | Public-key mode: the `PUB_KEY_ID_…` serial shown next to it — set both or neither |
 | `WXPAY_NOTIFY_URL` | no | Callback URL sent with every order; defaults to a placeholder |
+| `WXPAY_APP_SECRET` | no | Mini-program AppSecret (小程序 → 开发管理 → 开发设置); enables the mini-program pay panel, where the server exchanges `wx.login` codes for openids |
 
 With `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID` set, signatures from WeChat are
 verified against that key and no platform certificates are downloaded
