@@ -72,9 +72,14 @@ async test "page pay url carries the signed order parameters" {
   )
   assert_eq(@moon-pay-sdk.string_field(biz, "total_amount"), "88.00")
   // The signature in the URL verifies with the Alipay public key over the
-  // canonical content of the decoded parameters.
+  // canonical REQUEST content (sign_type included) of the decoded parameters.
   let signature = lookup("sign")
-  assert_true(client.verify_signature(decoded, signature[:]))
+  assert_true(
+    client.verify_content(
+      @alipay.build_request_sign_content(decoded),
+      signature[:],
+    ),
+  )
 }
 
 ///|
@@ -111,7 +116,12 @@ async test "a tampered pay url fails signature verification" {
     }
   }
   let signature = lookup_value(tampered, "sign")
-  assert_false(client.verify_signature(tampered, signature[:]))
+  assert_false(
+    client.verify_content(
+      @alipay.build_request_sign_content(tampered),
+      signature[:],
+    ),
+  )
 }
 
 ///|

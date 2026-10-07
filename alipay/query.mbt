@@ -175,7 +175,11 @@ pub async fn Client::query_order(
   }) catch {
     e => raise Network("\{e}")
   }
-  let text = @utf8.decode(response.body[:]) catch { _ => "" }
+  // Alipay answers error responses in GBK regardless of the request charset,
+  // so decode lossily: success bodies are valid UTF-8 and stay byte-identical
+  // for the signature check below, while GBK error messages keep their ASCII
+  // code/sub_code readable instead of collapsing into an empty string.
+  let text = @utf8.decode_lossy(response.body[:])
   let root = @moon-pay-sdk.try_parse_json(text)
   let root = match root {
     Some(root) => root
@@ -216,14 +220,8 @@ pub async fn Client::query_order(
   let response_sign = @moon-pay-sdk.string_field(root, "sign") catch {
     _ => raise Network("query response carries no signature")
   }
-  if !self.verify_signature(
-      [
-        ("alipay_trade_query_response", payload_raw),
-        ("sign", response_sign),
-        ("sign_type", "RSA2"),
-      ],
-      response_sign[:],
-    ) {
+  // Alipay signs the sync response over the member text verbatim.
+  if !self.verify_content(payload_raw, response_sign[:]) {
     raise Network("query response signature verification failed")
   }
   let total_amount = @moon-pay-sdk.string_field(payload, "total_amount") catch {

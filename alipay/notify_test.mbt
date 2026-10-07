@@ -14,7 +14,10 @@ fn notification_form(
     ("seller_id", "2088test"),
     ("sign_type", "RSA2"),
   ]
-  let signature = @alipay.sign_params(app_private_key(), unsigned)
+  let signature = @alipay.sign_content(
+    app_private_key(),
+    @alipay.build_sign_content(unsigned),
+  )
   unsigned.push(("sign", signature))
   // On the wire the form is urlencoded; verify_notify decodes it again.
   let encoded : Array[(String, String)] = []

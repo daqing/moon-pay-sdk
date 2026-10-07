@@ -35,10 +35,13 @@ pub fn Client::page_pay_url(
 ) -> String raise @moon-pay-sdk.SdkError {
   @moon-pay-sdk.validate_amount_fen(total_fen)
   @moon-pay-sdk.validate_alipay_out_trade_no(out_trade_no)
+  // product_code is what the gateway resolves the signed product contract
+  // by; the official demos always send it explicitly for page pay.
   let biz : Json = {
     "out_trade_no": out_trade_no,
     "total_amount": @moon-pay-sdk.format_yuan(total_fen),
     "subject": subject,
+    "product_code": "FAST_INSTANT_TRADE_PAY",
   }
   self.pay_url(
     api_method="alipay.trade.page.pay",
@@ -64,6 +67,7 @@ pub fn Client::wap_pay_url(
     "out_trade_no": out_trade_no,
     "total_amount": @moon-pay-sdk.format_yuan(total_fen),
     "subject": subject,
+    "product_code": "QUICK_WAP_WAY",
   }
   self.pay_url(api_method="alipay.trade.wap.pay", biz~, notify_url~)
 }

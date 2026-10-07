@@ -29,7 +29,12 @@ async test "wap pay url targets the wap method with the order fields" {
   // No return_url is sent for wap orders.
   assert_eq(lookup_value(decoded, "return_url"), "")
   let signature = lookup_value(decoded, "sign")
-  assert_true(client.verify_signature(decoded, signature[:]))
+  assert_true(
+    client.verify_content(
+      @alipay.build_request_sign_content(decoded),
+      signature[:],
+    ),
+  )
 }
 
 ///|
