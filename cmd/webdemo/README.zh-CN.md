@@ -16,7 +16,11 @@ Native（扫码）流程和支付宝电脑网站支付（page pay）流程。它
    `POST /api/wechat/jsapi/orders?amount_yuan=…&openid=…` 通过
    `Client::jsapi_order` 在微信内下单，返回签名好的
    `wx.requestPayment` 参数集（`Client::jsapi_pay_params`）——可粘到微信
-   开发者工具验证，或作为小程序后端调用；订单走同一轮询端点。
+   开发者工具验证，或作为小程序后端调用；订单走同一轮询端点。配置
+   `WXPAY_APP_SECRET` 后页面还会多一个小程序区块：
+   `POST /api/wechat/miniapp/orders?amount_yuan=…&js_code=…` 用
+   `wx.login` 的 code 一步换 openid 并下单（`miniprogram.Client::pay`），
+   返回同样的签名参数集。
 2. **`/alipay` — 支付宝 · 电脑网站支付** — 通过 `Client::page_pay_url`
    构造签名收银台地址（`POST /api/alipay/orders`，
    `alipay.trade.page.pay`）并把浏览器跳转过去；支付宝把用户带回
@@ -57,6 +61,7 @@ source cmd/webdemo/env.sh && moon run cmd/webdemo
 | `WXPAY_PUBLIC_KEY` | 否 | 公钥模式：商户控制台下载的微信支付公钥（`pub_key.pem`），PEM 文本或文件路径 |
 | `WXPAY_PUBLIC_KEY_ID` | 否 | 公钥模式：控制台显示的公钥序列号，例如 `PUB_KEY_ID_25566888`——两个都填或都不填 |
 | `WXPAY_NOTIFY_URL` | 否 | 下单时传入的回调地址，默认为占位符 |
+| `WXPAY_APP_SECRET` | 否 | 小程序 AppSecret（小程序 → 开发管理 → 开发设置）；设置后启用小程序支付区块，服务端用 `wx.login` code 换 openid |
 
 设置 `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID` 后，微信的签名会用这把公钥
 验证，不再下载平台证书（公钥模式，新商户账号默认）；不设置则走证书模式
