@@ -57,8 +57,10 @@ pub(all) struct Config {
   private_key_pem : String
   api_v3_key : String
   base_url : String
+  platform_public_key_pem : String
+  platform_public_key_id : String
 }
-pub fn Config::new(appid~ : String, mchid~ : String, serial_no~ : String, private_key_pem~ : String, api_v3_key~ : String, base_url? : String) -> Self
+pub fn Config::new(appid~ : String, mchid~ : String, serial_no~ : String, private_key_pem~ : String, api_v3_key~ : String, base_url? : String, platform_public_key_pem? : String, platform_public_key_id? : String) -> Self
 pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
 
 pub(all) struct H5Order {

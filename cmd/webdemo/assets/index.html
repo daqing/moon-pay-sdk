@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>moon-pay-sdk · 微信支付集成测试</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #f2f4f7; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #1f2329;
+  }
+  .card {
+    width: 400px; background: #fff; border-radius: 16px; padding: 28px 32px 24px;
+    box-shadow: 0 6px 24px rgba(15, 23, 42, .08);
+  }
+  h1 { font-size: 17px; margin: 0 0 2px; }
+  .sub { font-size: 12px; color: #8a919f; margin-bottom: 18px; }
+  .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .label { font-size: 13px; color: #51565f; }
+  select {
+    font-size: 14px; padding: 6px 10px; border: 1px solid #d7dbe0; border-radius: 8px; background: #fff;
+  }
+  select:disabled { background: #f2f4f7; color: #8a919f; }
+  button {
+    width: 100%; padding: 10px 0; font-size: 14px; color: #fff; background: #07c160;
+    border: none; border-radius: 10px; cursor: pointer;
+  }
+  button:disabled { background: #a9d5bd; cursor: default; }
+  #qrbox { display: flex; justify-content: center; padding: 16px 0 6px; }
+  #qr { display: block; border-radius: 8px; }
+  .hidden { display: none !important; }
+  .hint { text-align: center; font-size: 13px; color: #51565f; margin: 4px 0 14px; }
+  .status {
+    text-align: center; font-size: 14px; padding: 10px 0; border-radius: 10px; margin-bottom: 14px;
+    background: #f2f4f7; color: #51565f;
+  }
+  .status.waiting { background: #fff7e6; color: #ad6800; }
+  .status.paid { background: #e8f7ef; color: #059048; font-weight: 600; }
+  .status.error { background: #fdecec; color: #c5303c; }
+  .meta { font-size: 12px; color: #8a919f; word-break: break-all; margin-bottom: 4px; }
+  .meta b { color: #51565f; font-weight: 600; }
+  details { margin: 10px 0 0; }
+  summary { font-size: 12px; color: #8a919f; cursor: pointer; }
+  #log {
+    margin-top: 8px; max-height: 160px; overflow: auto; font-size: 11px; line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #51565f;
+    background: #f7f8fa; border-radius: 8px; padding: 8px 10px; white-space: pre-wrap;
+  }
+  .switch { text-align: center; margin-top: 14px; font-size: 13px; }
+  .switch a { color: #1677ff; text-decoration: none; }
+</style>
+</head>
+<body>
+<div>
+<div class="card">
+  <h1>微信支付 · Native 扫码</h1>
+  <div class="sub">moon-pay-sdk 集成测试 — 真实网关，真实扣款，金额请选最小档</div>
+
+  <div class="row">
+    <span class="label">支付金额</span>
+    <select id="amount">
+      <option value="0.01" selected>¥0.01</option>
+      <option value="0.10">¥0.10</option>
+      <option value="1.00">¥1.00</option>
+    </select>
+  </div>
+
+  <div id="qrbox"><canvas id="qr" class="hidden"></canvas></div>
+  <div id="hint" class="hint hidden">请使用微信「扫一扫」支付</div>
+  <div id="status" class="status">正在创建订单…</div>
+
+  <button id="recreate">重新下单</button>
+
+  <div class="meta" style="margin-top:14px">订单号 <b id="outTradeNo">—</b></div>
+  <div class="meta">金额 <b id="amountText">—</b></div>
+
+  <details>
+    <summary>调试日志</summary>
+    <div id="log"></div>
+  </details>
+</div>
+<div class="switch"><a href="/alipay">支付宝 · 电脑网站支付 →</a></div>
+</div>
+
+<script src="/assets/qrcode.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  let pollTimer = null;
+
+  function log(msg) {
+    const el = $('log');
+    el.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function setStatus(kind, text) {
+    const el = $('status');
+    el.className = 'status ' + kind;
+    el.textContent = text;
+  }
+
+  function stopPoll() {
+    if (pollTimer !== null) { clearInterval(pollTimer); pollTimer = null; }
+  }
+
+  function drawQr(text) {
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    const n = qr.getModuleCount();
+    const canvas = $('qr');
+    const quiet = 4;
+    const cell = Math.max(3, Math.floor(320 / (n + quiet * 2)));
+    canvas.width = canvas.height = (n + quiet * 2) * cell;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000000';
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell);
+      }
+    }
+    canvas.classList.remove('hidden');
+    $('hint').classList.remove('hidden');
+  }
+
+  async function createOrder() {
+    stopPoll();
+    $('qr').classList.add('hidden');
+    $('hint').classList.add('hidden');
+    $('outTradeNo').textContent = '—';
+    $('amountText').textContent = '—';
+    setStatus('', '正在创建订单…');
+    const yuan = $('amount').value;
+    try {
+      const res = await fetch('/api/orders?amount_yuan=' + encodeURIComponent(yuan), { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus('error', '下单失败');
+        log('下单失败: HTTP ' + res.status + ' ' + JSON.stringify(data));
+        return;
+      }
+      $('outTradeNo').textContent = data.out_trade_no;
+      $('amountText').textContent = '¥' + (data.amount_fen / 100).toFixed(2);
+      log('下单成功: ' + data.out_trade_no + ' code_url=' + data.code_url);
+      drawQr(data.code_url);
+      setStatus('waiting', '等待扫码支付…');
+      pollTimer = setInterval(() => pollStatus(data.out_trade_no), 2000);
+    } catch (e) {
+      setStatus('error', '网络错误，请确认服务仍在运行');
+      log('fetch /api/orders 失败: ' + e);
+    }
+  }
+
+  async function pollStatus(no) {
+    try {
+      const res = await fetch('/api/orders/' + encodeURIComponent(no), { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) { log('查单失败: HTTP ' + res.status + ' ' + JSON.stringify(data)); return; }
+      log('查单: ' + data.trade_state + (data.notify_seen ? ' (回调已验证)' : ''));
+      switch (data.trade_state) {
+        case 'SUCCESS':
+          stopPoll();
+          setStatus('paid', '✔ 支付成功' + (data.notify_seen ? '（回调已验证）' : ''));
+          break;
+        case 'CLOSED':
+        case 'REVOKED':
+        case 'PAYERROR':
+          stopPoll();
+          setStatus('error', '订单' + ({ CLOSED: '已关闭', REVOKED: '已撤销', PAYERROR: '支付失败' }[data.trade_state]));
+          break;
+        default:
+          setStatus('waiting', '等待支付…（' + data.trade_state + '）');
+      }
+    } catch (e) {
+      log('查单请求失败: ' + e);
+    }
+  }
+
+  $('recreate').addEventListener('click', createOrder);
+  $('amount').addEventListener('change', createOrder);
+
+  (async function init() {
+    try {
+      const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
+      if (!cfg.wechat) {
+        $('recreate').disabled = true;
+        $('amount').disabled = true;
+        setStatus('error', '未配置 WXPAY_* 环境变量，本页停用');
+        return;
+      }
+    } catch (e) {
+      log('读取 /api/config 失败: ' + e);
+    }
+    createOrder();
+  })();
+</script>
+</body>
+</html>

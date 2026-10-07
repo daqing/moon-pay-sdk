@@ -2,14 +2,31 @@
 // async notification signature verification.
 
 ///|
-/// The canonical signing content of an Alipay request: every parameter
-/// except `sign` and `sign_type`, sorted by key, joined as `k=v&` with no
-/// trailing separator. Values are raw (not URL-encoded) here; encoding only
-/// happens when the parameters travel.
+/// The canonical verification content of an INCOMING notification or return
+/// redirect: every parameter except `sign` and `sign_type`, sorted by key,
+/// joined as `k=v&` with no trailing separator. Values are raw (not
+/// URL-encoded) here; encoding only happens when the parameters travel.
 pub fn build_sign_content(params : Array[(String, String)]) -> String {
+  canonical_join(params, exclude_sign_type=true)
+}
+
+///|
+/// The canonical content for signing an OUTGOING request: every parameter
+/// except `sign`, sorted by key, joined the same way. The openapi gateway
+/// verifies requests with `sign_type` included — its invalid-signature error
+/// page prints the exact verification string, which carries `sign_type=RSA2`.
+pub fn build_request_sign_content(params : Array[(String, String)]) -> String {
+  canonical_join(params, exclude_sign_type=false)
+}
+
+///|
+fn canonical_join(
+  params : Array[(String, String)],
+  exclude_sign_type~ : Bool,
+) -> String {
   let filtered : Array[(String, String)] = []
   for pair in params {
-    if pair.0 != "sign" && pair.0 != "sign_type" {
+    if pair.0 != "sign" && !(exclude_sign_type && pair.0 == "sign_type") {
       filtered.push(pair)
     }
   }
@@ -71,16 +88,22 @@ fn key_greater(a : String, b : String) -> Bool {
 }
 
 ///|
-/// Sign the canonical content with the application private key (RSA2:
-/// RSA PKCS#1 v1.5 over SHA-256) and return the base64 signature for the
-/// `sign` parameter.
+/// Sign one canonical content string with the application private key
+/// (RSA2: RSA PKCS#1 v1.5 over SHA-256) and return the base64 signature.
+pub fn sign_content(private_key : @rsa.PrivateKey, content : String) -> String {
+  let signature = @crypto.sign_rsa_sha256(private_key, @utf8.encode(content)[:])
+  @base64.encode(signature[:])
+}
+
+///|
+/// Sign the canonical REQUEST content of `params` (see
+/// `build_request_sign_content`) with the application private key (RSA2)
+/// and return the base64 signature for the `sign` parameter.
 pub fn sign_params(
   private_key : @rsa.PrivateKey,
   params : Array[(String, String)],
 ) -> String {
-  let content = build_sign_content(params)
-  let signature = @crypto.sign_rsa_sha256(private_key, @utf8.encode(content)[:])
-  @base64.encode(signature[:])
+  sign_content(private_key, build_request_sign_content(params))
 }
 
 ///|

@@ -8,7 +8,10 @@ test "return_url query parameters verify and decode" {
     ("total_amount", "88.00"),
     ("sign_type", "RSA2"),
   ]
-  let signature = @alipay.sign_params(app_private_key(), params)
+  let signature = @alipay.sign_content(
+    app_private_key(),
+    @alipay.build_sign_content(params),
+  )
   params.push(("sign", signature))
   let builder = StringBuilder(size_hint=256)
   for i, pair in params {
@@ -37,7 +40,10 @@ test "a tampered return redirect fails verification" {
     ("total_amount", "88.00"),
     ("sign_type", "RSA2"),
   ]
-  let signature = @alipay.sign_params(app_private_key(), params)
+  let signature = @alipay.sign_content(
+    app_private_key(),
+    @alipay.build_sign_content(params),
+  )
   params.push(("sign", signature))
   let tampered : Array[(String, String)] = []
   for pair in params {

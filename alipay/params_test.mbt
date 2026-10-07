@@ -62,7 +62,7 @@ fn alipay_config() -> @alipay.Config {
 }
 
 ///|
-test "sign content is sorted, without sign and sign_type" {
+test "notification verification content is sorted, without sign and sign_type" {
   let content = @alipay.build_sign_content([
     ("version", "1.0"),
     ("sign_type", "RSA2"),
@@ -78,9 +78,25 @@ test "sign content is sorted, without sign and sign_type" {
 }
 
 ///|
+test "request sign content is sorted, keeps sign_type, drops sign" {
+  let content = @alipay.build_request_sign_content([
+    ("version", "1.0"),
+    ("sign_type", "RSA2"),
+    ("charset", "utf-8"),
+    ("method", "alipay.trade.page.pay"),
+    ("sign", "IGNORED"),
+    ("app_id", "2021000000000000"),
+    ("biz_content", "{\"out_trade_no\":\"T6GOLDEN\"}"),
+  ])
+  assert_eq(
+    content, "app_id=2021000000000000&biz_content={\"out_trade_no\":\"T6GOLDEN\"}&charset=utf-8&method=alipay.trade.page.pay&sign_type=RSA2&version=1.0",
+  )
+}
+
+///|
 test "parameter signing matches the openssl reference signature" {
-  // Reference generated with:
-  //   printf 'app_id=2021000000000000&biz_content={"out_trade_no":"T6GOLDEN","total_amount":"88.00"}&charset=utf-8&format=JSON&method=alipay.trade.page.pay&timestamp=2026-10-02 08:00:00&version=1.0' > msg
+  // Reference generated with (note sign_type IS part of the content):
+  //   printf 'app_id=2021000000000000&biz_content={"out_trade_no":"T6GOLDEN","total_amount":"88.00"}&charset=utf-8&format=JSON&method=alipay.trade.page.pay&sign_type=RSA2&timestamp=2026-10-02 08:00:00&version=1.0' > msg
   //   openssl dgst -sha256 -sign test_keys/merchant_private_key.pem -out sig msg
   //   base64 < sig
   let signature = @alipay.sign_params(app_private_key(), [
@@ -96,7 +112,7 @@ test "parameter signing matches the openssl reference signature" {
     ),
   ])
   assert_eq(
-    signature, "bhro797ndGGnMr67hO/0mmhwOOf2s1Nohr13ANZzwpJOCDcfkR5ROPeYBEdZAVsEWqrkoDGouEQ7ecjIKZEDCoGcH39qBPS3yf2IdWaaH14rvAw91x7abP4NO+/PJpbO3YYlyo7jbORP7G2cikHaklfi91FVT+TpDvyQEu1RUDIcJKGSXGFxTcHDuzXa5HfQ1l4t7HV2Xg5kN2OcTMDSLv0ZhmdYJz/1FRGzVjuEm3K3Co8Ybi0xXrnHUTK1/NL3ySkn/2MZdMOaGLZnsNLjEt/sj8aY0UOlP54o/L3K/77o9+IEUi3J2OKLFEC10ZYojwA1rsg7jPzr+C6OYem5yA==",
+    signature, "jEr19J1XEy4fzxiDx4Gd+NapwiGgqX5p6NbhxrEOFCQfKAY1PM4TpcvDNWrBV6mWFkEtb5UD7pBwx80g55Ylp2fShgIbFV9xJmM8SHT45/AyRGhxZXCCR2PDZQn8KCrAUGasGtTfvaZsWxaeVCSX2N7+HB+ZR/g4V6YQTZWtpbMV1QhiWrUHn+PMsQeCwLfd8h+yWy8FOHZZ4SsvwBTUJ8FQMvZF6CnH9En8WGXr80PsR0fg5YKD0aI5s9yxDB9hlkimeCmpqVayKft+9Ji6IDwm9Dop5WSF6PBXBmr8F69TcT/e14U5RBN7+i4Nhr5ZX0MWEVNZqFPGm9IgxG4SxQ==",
   )
 }
 

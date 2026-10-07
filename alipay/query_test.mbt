@@ -3,10 +3,7 @@
 // the client's Alipay-public-key check passes.
 fn query_response(trade_status : String, total_amount : String) -> Bytes {
   let payload = "{\"code\":\"10000\",\"msg\":\"Success\",\"out_trade_no\":\"hack-20261001-0002\",\"trade_no\":\"2026100222001\",\"trade_status\":\"\{trade_status}\",\"total_amount\":\"\{total_amount}\",\"send_pay_date\":\"2026-10-02 08:30:00\"}"
-  let signature = @alipay.sign_params(app_private_key(), [
-    ("alipay_trade_query_response", payload),
-    ("sign_type", "RSA2"),
-  ])
+  let signature = @alipay.sign_content(app_private_key(), payload)
   let body = "{\"alipay_trade_query_response\":" +
     payload +
     ",\"sign\":\"" +
@@ -92,10 +89,7 @@ async test "provider errors map to Api errors with their code" {
 async test "a tampered query response fails signature verification" {
   // Signed for 88.00 but answering 0.01.
   let payload = "{\"code\":\"10000\",\"msg\":\"Success\",\"out_trade_no\":\"hack-20261001-0002\",\"trade_no\":\"2026100222001\",\"trade_status\":\"TRADE_SUCCESS\",\"total_amount\":\"0.01\"}"
-  let signature = @alipay.sign_params(app_private_key(), [
-    ("alipay_trade_query_response", payload),
-    ("sign_type", "RSA2"),
-  ])
+  let signature = @alipay.sign_content(app_private_key(), payload)
   let swapped_payload = "{\"code\":\"10000\",\"msg\":\"Success\",\"out_trade_no\":\"hack-20261001-0002\",\"trade_no\":\"2026100222001\",\"trade_status\":\"TRADE_SUCCESS\",\"total_amount\":\"88.00\"}"
   let body = "{\"alipay_trade_query_response\":" +
     swapped_payload +

@@ -29,6 +29,9 @@ and the pure-MoonBit cryptography of
   reconcile missed callbacks
 - **Callback handling** — verify the callback signature against platform
   certificates, decrypt the AES-256-GCM payload, and parse the payment result
+- **Public-key mode (公钥模式)** — alternatively verify WeChat's signatures
+  with the console-issued WeChat Pay public key (`PUB_KEY_ID_...`) instead of
+  downloaded platform certificates
 
 ### Alipay (OpenAPI)
 
