@@ -11,7 +11,7 @@
 
 name = "daqing/moon-pay-sdk"
 
-version = "0.8.6"
+version = "0.9.0"
 
 readme = "README.mbt.md"
 
