@@ -16,6 +16,8 @@
 - **H5 支付** — 创建订单并返回支付链接，在移动端浏览器中拉起微信支付
 - **JSAPI 支付** — 微信内下单（小程序或公众号网页），传入付款人 openid，
   生成已签名的 `wx.requestPayment` 参数集
+- **小程序支付** — 独立的 `miniprogram` 包：`wx.login` code 换 openid
+  （code2session）并一步生成签名好的 `wx.requestPayment` 参数集
 - **查单** — 按商户订单号或交易单号查询订单，用于回调丢失时对账
 - **回调处理** — 使用平台证书验签，解密 AES-256-GCM 报文并解析支付结果
 - **公钥模式** — 也可使用商户控制台下发的微信支付公钥（`PUB_KEY_ID_...`）验签，无需下载平台证书
@@ -49,6 +51,7 @@ moon add daqing/moon-pay-sdk
 ```
 import {
   "daqing/moon-pay-sdk/wechat",
+  "daqing/moon-pay-sdk/miniprogram",
   "daqing/moon-pay-sdk/alipay",
 }
 ```
@@ -92,6 +95,42 @@ async fn main {
   // 回调可能丢失——主动查单对账。
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
   println(paid.trade_state) // "SUCCESS"、"NOTPAY" 等
+}
+```
+
+### 微信支付：小程序下单
+
+```moonbit nocheck
+///|
+async fn main {
+  let wechat = @wechat.Client::new(
+    config=@wechat.Config::new(
+      appid="wx8888888888888888", // 小程序 appid
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // PEM 文本，启动时加载一次
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
+  )
+  let miniapp = @miniprogram.Client::new(
+    config=@miniprogram.Config::new(
+      app_id="wx8888888888888888", // 必须与支付客户端的 appid 一致
+      app_secret="YOUR-MINI-PROGRAM-APP-SECRET",
+    ),
+    pay=wechat,
+    transport=@transport.HttpClient::new(),
+  )
+  // 从 wx.login 的 code 一步到 wx.requestPayment 参数；code 一次性且
+  // 五分钟内有效，应在下单时换取。
+  let result = miniapp.pay(
+    out_trade_no="hackathon-20261001-0006",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    js_code~, // wx.login 刚返回的 code
+  )
+  // 把 result.pay_params() 返回给小程序调用 wx.requestPayment。
 }
 ```
 
@@ -170,6 +209,7 @@ async fn handle_alipay_notify(
           │
 moon-pay-sdk
 ├── wechat      Native / H5 / JSAPI 支付、查单、回调验签与解密
+├── miniprogram  wx.login code 换取 openid，一步完成小程序下单
 ├── alipay      电脑 / 手机网站支付、查单、异步通知验签
 ├── crypto      RSA-SHA256 签名与验签、X.509 解析、AES-256-GCM（mooncrypt）
 └── transport   基于 moonbitlang/async 的 HTTPS（Linux epoll / macOS kqueue）

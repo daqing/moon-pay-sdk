@@ -1,0 +1,55 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "daqing/moon-pay-sdk/miniprogram"
+
+import {
+  "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/transport",
+  "daqing/moon-pay-sdk/wechat",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct Client {
+  config : Config
+  pay : @wechat.Client
+  transport : &@transport.Transport
+}
+pub async fn Client::code2session(Self, js_code~ : String) -> Session raise @moon-pay-sdk.SdkError
+pub fn Client::new(config~ : Config, pay~ : @wechat.Client, transport~ : &@transport.Transport) -> Self raise @moon-pay-sdk.SdkError
+pub async fn Client::pay(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, js_code~ : String) -> PayResult raise @moon-pay-sdk.SdkError
+pub async fn Client::pay_with_openid(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, openid~ : String) -> PayResult raise @moon-pay-sdk.SdkError
+
+pub(all) struct Config {
+  app_id : String
+  app_secret : String
+  session_base_url : String
+}
+pub fn Config::new(app_id~ : String, app_secret~ : String, session_base_url? : String) -> Self
+pub fn Config::validate(Self) -> Unit raise @moon-pay-sdk.SdkError
+
+pub(all) struct PayResult {
+  openid : String
+  out_trade_no : String
+  prepay_id : String
+  pay_params : @wechat.JsapiPayParams
+}
+pub fn PayResult::openid(Self) -> String
+pub fn PayResult::out_trade_no(Self) -> String
+pub fn PayResult::pay_params(Self) -> @wechat.JsapiPayParams
+pub fn PayResult::prepay_id(Self) -> String
+
+pub(all) struct Session {
+  openid : String
+  session_key : String
+  unionid : String?
+}
+pub fn Session::openid(Self) -> String
+pub fn Session::session_key(Self) -> String
+pub fn Session::unionid(Self) -> String?
+
+// Type aliases
+
+// Traits

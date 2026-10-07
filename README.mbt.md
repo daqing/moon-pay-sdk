@@ -28,6 +28,9 @@ and the pure-MoonBit cryptography of
 - **JSAPI payment** — create an in-WeChat order (mini-program or
   official-account page) with the payer's openid, and build the signed
   `wx.requestPayment` parameter set
+- **Mini-program payment** — a dedicated `miniprogram` package: exchange a
+  `wx.login` code for the payer's openid (code2session) and produce the
+  signed `wx.requestPayment` parameter set in one call
 - **Order query** — look up an order by out-trade number or transaction ID, to
   reconcile missed callbacks
 - **Callback handling** — verify the callback signature against platform
@@ -70,6 +73,7 @@ Then import the packages you need in your `moon.pkg`:
 import {
   "daqing/moon-pay-sdk/wechat",
   "daqing/moon-pay-sdk/alipay",
+  "daqing/moon-pay-sdk/miniprogram",
 }
 ```
 
@@ -117,6 +121,42 @@ async fn main {
   if paid.trade_state() is @wechat.Success {
     println("paid \{paid.total_fen()} fen")
   }
+}
+```
+
+### WeChat Pay: mini-program checkout
+
+```moonbit nocheck
+///|
+async fn main {
+  let wechat = @wechat.Client::new(
+    config=@wechat.Config::new(
+      appid="wx8888888888888888", // the mini-program appid
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // PEM text, loaded once at startup
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
+  )
+  let miniapp = @miniprogram.Client::new(
+    config=@miniprogram.Config::new(
+      app_id="wx8888888888888888", // must equal the pay client's appid
+      app_secret="YOUR-MINI-PROGRAM-APP-SECRET",
+    ),
+    pay=wechat,
+    transport=@transport.HttpClient::new(),
+  )
+  // One call from the wx.login code to wx.requestPayment parameters; codes
+  // are single-use and expire in five minutes, so exchange at order time.
+  let result = miniapp.pay(
+    out_trade_no="hackathon-20261001-0006",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    js_code~, // fresh from wx.login
+  )
+  // Return result.pay_params() to the mini-program for wx.requestPayment.
 }
 ```
 
@@ -201,6 +241,7 @@ your MoonBit application
           │
 moon-pay-sdk
 ├── wechat      Native / H5 / JSAPI payment, order query, callback verify & decrypt
+├── miniprogram  wx.login code exchange plus one-call mini-program checkout
 ├── alipay      page / wap payment, order query, async notification verify
 ├── crypto      RSA-SHA256 sign & verify, X.509 parsing, AES-256-GCM (mooncrypt)
 └── transport   HTTPS over moonbitlang/async (epoll on Linux, kqueue on macOS)
