@@ -161,3 +161,161 @@ async test "an unknown serial triggers one refresh and then fails" {
   let _ = client.platform_public_key(platform_serial)
   assert_eq(mock.recorded().length(), 1)
 }
+
+///|
+// The WeChat Pay public key a public-key-mode (公钥模式) merchant configures:
+// the platform fixture key's public half, as the console publishes it.
+let platform_public_key_pem : String =
+  #|-----BEGIN PUBLIC KEY-----
+  #|MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8v9PCg8/L3GDS/z9e9GC
+  #|fuYZ+0uJs+2Yok+Of6ePAsliuvVZ2kdJZmh6xPG/VUCVi4n0IoiVuOCF8OA7rT1s
+  #|Pnv5DvzsZu9esr8QuvNhT2wX4zANsE38TE9WQwT8fF+XYKk29TdOY5I7Ls/jBNo8
+  #|OFfuAffKJxcZyVI/3TLqEGuHw6yI9dYg1aUiOLfql/9isxbz98Q2XG/q15RC165y
+  #|0Ngk1cSazyGktP7Milwrgu3egKbq1W5eK5NOfYY8hb3Av9ov/OVM0Qd4hPKCSfG0
+  #|l2CrFApqDvcqBVeJx2Oac9+KXCBsNrien3GYiSl4d2GnA9+lbpetw+CsY0L0g4f8
+  #|wQIDAQAB
+  #|-----END PUBLIC KEY-----
+
+///|
+let pubkey_id : String = "PUB_KEY_ID_test0001"
+
+///|
+fn pubkey_client(
+  responses : Array[@transport.Response],
+) -> (@wechat.Client, @transport.MockTransport) {
+  let mock = @transport.MockTransport::new(responses)
+  let client = @wechat.Client::new(
+    config=@wechat.Config::new(
+      appid="wx8888888888888888",
+      mchid="1900000000",
+      serial_no="TEST-SERIAL",
+      private_key_pem=merchant_pem,
+      api_v3_key=test_api_v3_key,
+      base_url="https://api.mch.weixin.qq.com",
+      platform_public_key_pem~,
+      platform_public_key_id=pubkey_id,
+    ),
+    transport=mock,
+    now_ms=() => 1600000000000L,
+    verify_responses=false,
+  ) catch {
+    e => abort("pubkey client must build: \{e}")
+  }
+  (client, mock)
+}
+
+///|
+// Callback headers signed by the platform key under an explicit serial.
+fn signed_headers_with_serial(
+  serial~ : String,
+  timestamp~ : String,
+  nonce~ : String,
+  body~ : String,
+) -> Array[(String, String)] {
+  let message = callback_message(timestamp, nonce, body)
+  let signature = @crypto.sign_rsa_sha256(
+    platform_key(),
+    @utf8.encode(message)[:],
+  )
+  [
+    ("Wechatpay-Serial", serial),
+    ("Wechatpay-Timestamp", timestamp),
+    ("Wechatpay-Nonce", nonce),
+    ("Wechatpay-Signature", @base64.encode(signature[:])),
+  ]
+}
+
+///|
+async test "public-key mode verifies a callback without any certificate download" {
+  let (client, mock) = pubkey_client([])
+  let body = "{\"id\":\"evt-pk-1\"}"
+  let headers = match
+    @wechat.callback_headers_of(
+      signed_headers_with_serial(
+        serial=pubkey_id,
+        timestamp="1600000000",
+        nonce="cb-pk-nonce",
+        body~,
+      ),
+    ) {
+    Some(headers) => headers
+    None => abort("headers must extract")
+  }
+  client.verify_callback_signature(headers~, body~)
+  // Verification came entirely from the configured public key: the mock
+  // transport saw no /v3/certificates request at all.
+  assert_eq(mock.recorded().length(), 0)
+}
+
+///|
+async test "a mismatched public-key serial fails without hitting the certificate endpoint" {
+  let (client, mock) = pubkey_client([])
+  let verdict : String = try
+    client.platform_public_key("PUB_KEY_ID_other9999")
+  catch {
+    @moon-pay-sdk.Network(message) => message
+    _ => "other error"
+  } noraise {
+    _ => "no error raised"
+  }
+  assert_true(verdict.contains("public-key mode"))
+  assert_true(verdict.contains("PUB_KEY_ID_test0001"))
+  assert_eq(mock.recorded().length(), 0)
+}
+
+///|
+async test "an unconfigured client refuses public-key serials with guidance" {
+  let (client, mock) = mock_client([])
+  let verdict : String = try
+    client.platform_public_key("PUB_KEY_ID_25566888")
+  catch {
+    @moon-pay-sdk.Network(message) => message
+    _ => "other error"
+  } noraise {
+    _ => "no error raised"
+  }
+  assert_true(verdict.contains("public-key mode"))
+  // No certificate refresh was attempted: public-key-mode merchants cannot
+  // download platform certificates.
+  assert_eq(mock.recorded().length(), 0)
+}
+
+///|
+fn config_with_pubkey(pem~ : String, id~ : String) -> @wechat.Config {
+  @wechat.Config::new(
+    appid="wx8888888888888888",
+    mchid="1900000000",
+    serial_no="TEST-SERIAL",
+    private_key_pem=merchant_pem,
+    api_v3_key=test_api_v3_key,
+    platform_public_key_pem=pem,
+    platform_public_key_id=id,
+  )
+}
+
+///|
+async test "public key config must be complete and well-formed" {
+  let verdicts : Array[String] = []
+  for
+    config in [
+      config_with_pubkey(pem=platform_public_key_pem, id=""),
+      config_with_pubkey(pem="", id=pubkey_id),
+      config_with_pubkey(pem="not a pem", id=pubkey_id),
+    ] {
+    try config.validate() catch {
+      @moon-pay-sdk.Config(message) => verdicts.push(message)
+      _ => verdicts.push("other error")
+    } noraise {
+      _ => verdicts.push("no error raised")
+    }
+  }
+  assert_eq(verdicts.length(), 3)
+  for verdict in verdicts {
+    assert_true(verdict.contains("platform_public_key"))
+  }
+  // The complete pair passes and the client builds with the key loaded.
+  let (client, _) = pubkey_client([])
+  let public_key = client.platform_public_key(pubkey_id)
+  let sig = @crypto.sign_rsa_sha256(platform_key(), b"pk payload"[:])
+  assert_true(@crypto.verify_rsa_sha256(public_key, b"pk payload"[:], sig[:]))
+}

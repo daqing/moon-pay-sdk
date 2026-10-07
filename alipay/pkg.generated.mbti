@@ -12,6 +12,8 @@ pub fn ack_success() -> String
 
 pub fn build_pay_url(Config, Array[(String, String)], String) -> String
 
+pub fn build_request_sign_content(Array[(String, String)]) -> String
+
 pub fn build_sign_content(Array[(String, String)]) -> String
 
 pub fn format_beijing(Int64) -> String
@@ -21,6 +23,8 @@ pub fn parse_form_params(StringView) -> Array[(String, String)]
 pub fn percent_decode(StringView) -> String raise @moon-pay-sdk.SdkError
 
 pub fn percent_encode(StringView) -> String
+
+pub fn sign_content(@rsa.PrivateKey, String) -> String
 
 pub fn sign_params(@rsa.PrivateKey, Array[(String, String)]) -> String
 
@@ -39,6 +43,7 @@ pub struct Client {
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
 pub fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
+pub fn Client::verify_content(Self, String, StringView) -> Bool
 pub fn Client::verify_notify(Self, Array[(String, String)]) -> NotifyResult raise @moon-pay-sdk.SdkError
 pub fn Client::verify_return_params(Self, StringView) -> Array[(String, String)] raise @moon-pay-sdk.SdkError
 pub fn Client::verify_signature(Self, Array[(String, String)], StringView) -> Bool

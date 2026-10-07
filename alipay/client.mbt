@@ -29,15 +29,26 @@ pub fn Client::new(
 }
 
 ///|
-/// Verify one Alipay signature over the canonical content of `params`
-/// (which may include `sign`/`sign_type`; they are excluded from the
-/// canonical form) using the Alipay public key.
+/// Verify one Alipay signature over the canonical verification content of
+/// `params` — the incoming-notification / return-redirect form, which
+/// excludes `sign` and `sign_type` — using the Alipay public key.
 pub fn Client::verify_signature(
   self : Client,
   params : Array[(String, String)],
   signature : StringView,
 ) -> Bool {
-  let content = build_sign_content(params)
+  self.verify_content(build_sign_content(params), signature)
+}
+
+///|
+/// Verify one Alipay RSA2 signature over an already-canonicalized content
+/// string using the Alipay public key; used for notifications, return
+/// redirects and the verbatim sync-response member.
+pub fn Client::verify_content(
+  self : Client,
+  content : String,
+  signature : StringView,
+) -> Bool {
   let decoded = @base64.decode(signature) catch { _ => return false }
   @crypto.verify_rsa_sha256(
     self.alipay_public_key,

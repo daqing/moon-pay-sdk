@@ -113,7 +113,10 @@ async test "alipay end to end: redirect then notification" {
     ("seller_id", "2088test"),
     ("sign_type", "RSA2"),
   ]
-  let signature = @alipay.sign_params(app_private_key(), unsigned)
+  let signature = @alipay.sign_content(
+    app_private_key(),
+    @alipay.build_sign_content(unsigned),
+  )
   let form : Array[(String, String)] = []
   for pair in unsigned {
     form.push((@alipay.percent_encode(pair.0), @alipay.percent_encode(pair.1)))
