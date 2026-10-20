@@ -6,7 +6,7 @@
 
 项目为 MoonBit 黑客松而开发，面向 MoonBit native 后端——没有 JavaScript 桥接，也没有解释器参与运行。从 RSA 请求签名、回调解密到 TLS 传输，全部以原生代码运行，底层依赖 [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async) 和 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt) 的纯 MoonBit 密码学栈。
 
-> **状态**：v0.1.0 已实现[功能](#功能)所列全部内容；代码示例与发布 API 一致，可编译。
+> **状态**：v0.10.0 已实现[功能](#功能)所列全部内容；代码示例与发布 API 一致。
 
 ## 功能
 
@@ -60,25 +60,28 @@ import {
 
 ### 微信支付：扫码支付与查单
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn main {
   let wechat = @wechat.Client::new(
-    appid="wx8888888888888888",
-    mchid="1900000000",
-    serial_no="YOUR-CERT-SERIAL",
-    private_key_path="apiclient_key.pem",
-    api_v3_key="YOUR-API-V3-KEY",
+    config=@wechat.Config::new(
+      appid="wx8888888888888888",
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // apiclient_key.pem 的 PEM 文本，启动时加载一次
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
   )
 
-  // Native 支付：将 order.code_url 渲染成二维码。
+  // Native 支付：将 order.code_url() 渲染成二维码。
   let order = wechat.native_order(
     out_trade_no="hackathon-20261001-0001",
     total=100, // 单位为分：100 = 人民币 1.00 元
     description="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/wechat",
   )
-  println("QR content: \{order.code_url}")
+  println("QR content: \{order.code_url()}")
 
   // JSAPI 支付（小程序 / 微信内网页）：传付款人 openid，
   // 把签名好的参数集交给 wx.requestPayment。
@@ -89,12 +92,14 @@ async fn main {
     notify_url="https://example.com/callback/wechat",
     openid="oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
   )
-  let pay = wechat.jsapi_pay_params(prepay_id=jsapi.prepay_id)
-  println("wx.requestPayment timeStamp: \{pay.timestamp}")
+  let pay = wechat.jsapi_pay_params(prepay_id=jsapi.prepay_id())
+  println("wx.requestPayment timeStamp: \{pay.timestamp()}")
 
   // 回调可能丢失——主动查单对账。
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
-  println(paid.trade_state) // "SUCCESS"、"NOTPAY" 等
+  if paid.trade_state() is @wechat.Success {
+    println("已支付 \{paid.total_fen()} 分")
+  }
 }
 ```
 
@@ -145,7 +150,7 @@ async fn handle_wechat_callback(
 ) -> (Int, String) {
   // 验证微信支付签名（含防重放时间窗），解密 AES-256-GCM 报文，返回解析后的支付结果。
   let notification = wechat.verify_callback(headers, body)
-  if notification.trade_state() is wechat.Success {
+  if notification.trade_state() is @wechat.Success {
     // notification.out_trade_no() 已支付——在这里更新你自己的订单存储。
     @wechat.ack_success()
   } else {
@@ -156,19 +161,22 @@ async fn handle_wechat_callback(
 
 ### 支付宝：电脑 / 手机网站支付
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn main {
   let alipay = @alipay.Client::new(
-    app_id="2021000000000000",
-    private_key_path="app_private_key.pem", // 你的应用私钥
-    alipay_public_key_path="alipay_public_key.pem", // 用于验签的支付宝公钥
+    config=@alipay.Config::new(
+      app_id="2021000000000000",
+      private_key_pem~, // 你的应用私钥，PEM 文本
+      alipay_public_key_pem~, // 控制台显示的支付宝公钥，PEM 文本
+    ),
+    transport=@transport.HttpClient::new(),
   )
 
   // 电脑网站支付：让用户跳转到这个 URL。
   let url = alipay.page_pay_url(
     out_trade_no="hackathon-20261001-0002",
-    total_amount="88.00", // 人民币，保留两位小数
+    total_fen=8800, // 单位为分：8800 = 人民币 88.00 元
     subject="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/alipay",
     return_url="https://example.com/thanks",
@@ -178,7 +186,7 @@ async fn main {
   // 手机网站支付用法相同。
   let wap_url = alipay.wap_pay_url(
     out_trade_no="hackathon-20261001-0003",
-    total_amount="88.00",
+    total_fen=8800,
     subject="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/alipay",
   )
@@ -191,14 +199,16 @@ async fn main {
 ///|
 async fn handle_alipay_notify(
   alipay : @alipay.Client,
-  params : Map[String, String], // 解析后的 POST 表单参数
-) {
-  // 对通知参数做 RSA2 验签。
-  let notify = alipay.verify_notify(params)
-  if notify.trade_status == "TRADE_SUCCESS" {
-    // 支付确认——在这里更新你自己的订单存储。
+  form : Array[(String, String)], // 解析后的 urlencoded POST body
+) -> String {
+  // 先验 RSA2 签名，再校验 app_id 归属。
+  let notify = alipay.verify_notify(form)
+  if notify.trade_status() is @alipay.TradeSuccess
+    && notify.amount_matches(8800) {
+    // 签名正确、来自支付宝、金额一致——标记订单已支付。
   }
   // 返回纯文本 "success"，支付宝才会停止重试。
+  @alipay.ack_success()
 }
 ```
 

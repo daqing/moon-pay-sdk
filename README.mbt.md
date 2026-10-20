@@ -14,8 +14,8 @@ code built on [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/asyn
 and the pure-MoonBit cryptography of
 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt).
 
-> **Status**: v0.1.0 implements everything under [Features](#features); the
-> code samples compile against the shipped API.
+> **Status**: v0.10.0 implements everything under [Features](#features); the
+> code samples match the shipped API.
 
 ## Features
 
@@ -172,7 +172,7 @@ async fn handle_wechat_callback(
   // Verifies the WeChat Pay signature (replay window included), decrypts the
   // AES-256-GCM resource and returns the parsed payment result.
   let notification = wechat.verify_callback(headers, body)
-  if notification.trade_state() is wechat.Success {
+  if notification.trade_state() is @wechat.Success {
     // notification.out_trade_no() is paid — update your own order storage.
     @wechat.ack_success()
   } else {
