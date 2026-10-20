@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.10.0
+
+### WeChat Pay JSAPI
+
+- `wechat.Client::jsapi_order` places an in-WeChat order with the payer's
+  `openid` and returns a typed `JsapiOrder` with the `prepay_id`.
+- `wechat.Client::jsapi_pay_params` signs the
+  `appId`/`timeStamp`/`nonceStr`/`package` form with the merchant key and
+  returns `JsapiPayParams` ready for `wx.requestPayment` or
+  `WeixinJSBridge`.
+
+### Mini-program package (new)
+
+- `miniprogram.Client::code2session` exchanges a `wx.login` code for the
+  payer's `openid` (business `errcode`s mapped to `SdkError`, and the app
+  secret is never leaked through error text).
+- `miniprogram.Client::pay` / `pay_with_openid` compose the session exchange
+  with a JSAPI order and its pay params in one call, returning a typed
+  `PayResult` (`openid`, `out_trade_no`, `prepay_id`, `pay_params`).
+
+### Documentation
+
+- Bilingual WeChat Pay guide (`docs/wechat.md`, `docs/wechat.zh-CN.md`):
+  implemented modules, per-method examples, the full `WXPAY_*` reference with
+  the value checklist, and troubleshooting.
+- Bilingual Alipay guide (`docs/alipay.md`, `docs/alipay.zh-CN.md`):
+  implemented modules, page/wap usage examples, the production-verified
+  signing rules, and the full `ALIPAY_*` reference with PEM conversion and
+  troubleshooting.
+- `cmd/webdemo`'s WeChat page gains JSAPI and mini-program integration-check
+  sections.
+
 ## v0.1.1
 
 - Documentation release: both READMEs now compile their code samples against
