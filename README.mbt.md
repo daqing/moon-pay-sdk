@@ -268,6 +268,22 @@ Design notes:
 - **Native only** — merchant private keys belong on servers, so the SDK
   targets the native backend and produces a self-contained binary.
 
+## Documentation
+
+Guides live under [`docs/`](docs/):
+
+- **JSAPI payment testing guide** —
+  [docs/jsapi-testing.md](docs/jsapi-testing.md)
+  (中文版：[docs/jsapi-testing.zh-CN.md](docs/jsapi-testing.zh-CN.md)):
+  how to validate the official-account (JSAPI) payment flow end to end
+  against the real WeChat gateway — credentials, obtaining the payer
+  openid, placing the order, invoking payment inside WeChat, and verifying
+  the callback. Start here when reviewing or accepting the JSAPI feature.
+- WeChat Pay guide — [docs/wechat.md](docs/wechat.md) /
+  [docs/wechat.zh-CN.md](docs/wechat.zh-CN.md)
+- Alipay guide — [docs/alipay.md](docs/alipay.md) /
+  [docs/alipay.zh-CN.md](docs/alipay.zh-CN.md)
+
 ## Roadmap
 
 - **Hackathon release** — the feature set listed under [Features](#features)

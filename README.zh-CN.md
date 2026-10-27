@@ -235,6 +235,20 @@ moon-pay-sdk
 - **基于 mooncrypt 的密码学** — 请求签名（RSA-SHA256）、验签与回调解密（AES-256-GCM）使用纯 MoonBit 密码学栈 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt)（算法）、`moonbitstack/mooncred`（X.509 证书）与 `moonbitstack/moonbase`（base16/base64），均按规范向量测试。不手写密码学，也不自写 OpenSSL C FFI；测试套件额外用 `openssl` 生成的参考签名做交叉验证。
 - **仅支持 native** — 商户私钥只应出现在服务端，因此 SDK 面向 native 后端，产出自包含的原生二进制。
 
+## 文档
+
+更多指南见 [`docs/`](docs/)：
+
+- **JSAPI 支付测试指南** —
+  [docs/jsapi-testing.zh-CN.md](docs/jsapi-testing.zh-CN.md)
+  （英文版：[docs/jsapi-testing.md](docs/jsapi-testing.md)）：如何对真实
+  微信网关端到端验收公众号（JSAPI）支付——凭证准备、获取付款人 openid、
+  下单、微信内拉起支付、回调验证。验收 JSAPI 功能从这里开始。
+- 微信支付指南 — [docs/wechat.zh-CN.md](docs/wechat.zh-CN.md) /
+  [docs/wechat.md](docs/wechat.md)
+- 支付宝指南 — [docs/alipay.zh-CN.md](docs/alipay.zh-CN.md) /
+  [docs/alipay.md](docs/alipay.md)
+
 ## Roadmap
 
 - **黑客松版本** — 见[功能](#功能)所列范围
