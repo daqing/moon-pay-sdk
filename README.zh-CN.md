@@ -139,6 +139,27 @@ async fn main {
 }
 ```
 
+#### 用 `wxlogin` 命令行获取新鲜的登录 code
+
+`js_code` 来自真机小程序里的 `wx.login`——一次性、五分钟过期。
+`cmd/wxlogin` 把这一步自动化：
+
+```bash
+# 通过自动化端口（cli auto）驱动微信开发者工具，在真实小程序项目里
+# 执行 wx.login 并打印新鲜的 code：
+moon run cmd/wxlogin -- --project </path/to/mini-program/>
+
+# 或者手动粘贴 code 换取——--appid/--secret 依次回退
+# WXPAY_APPID / WXPAY_APP_SECRET，最后交互输入：
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+`--project` 的前置条件：微信开发者工具已登录，且
+设置 → 安全设置 → 服务端口 已开启。`cli` 路径按
+`--cli` → `WXPAY_DEVTOOLS_CLI` → macOS/Windows 默认安装位置依次解析。
+各错误码提示（40013/40029/41004/40125/45011）见
+[docs/wechat.zh-CN.md](docs/wechat.zh-CN.md)。
+
 ### 微信支付：回调处理
 
 ```moonbit

@@ -160,6 +160,27 @@ async fn main {
 }
 ```
 
+#### Grab a fresh login code with the `wxlogin` CLI
+
+`js_code` comes from `wx.login` inside the real client — single-use and
+expired after five minutes. The `cmd/wxlogin` CLI automates that step:
+
+```bash
+# Drives WeChat DevTools over its automation port (cli auto), runs
+# wx.login inside the mini-program project and prints a fresh code:
+moon run cmd/wxlogin -- --project </path/to/mini-program/>
+
+# Or exchange a pasted code by hand — --appid/--secret fall back to
+# WXPAY_APPID / WXPAY_APP_SECRET, then an interactive prompt:
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+Prerequisites for `--project`: WeChat DevTools logged in, with
+Settings → Security → Service Port enabled. The `cli` path resolves from
+`--cli` → `WXPAY_DEVTOOLS_CLI` → the default macOS/Windows install
+location. Error-code hints (40013/40029/41004/40125/45011) are covered in
+[docs/wechat.md](docs/wechat.md).
+
 ### WeChat Pay: callback
 
 ```moonbit nocheck
