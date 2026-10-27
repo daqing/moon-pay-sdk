@@ -279,6 +279,8 @@ in, then `source cmd/webdemo/env.sh && moon run cmd/webdemo`.
 | `WXPAY_APP_SECRET` | no | Mini-program AppSecret (小程序 → 开发管理 → 开发设置); enables the mini-program pay panel, where the server exchanges `wx.login` codes for openids |
 | `WXPAY_MINIAPP_APPID` | no | The mini program's own appid — used for the login exchange and for the panel's JSAPI orders — when it differs from `WXPAY_APPID`; defaults to `WXPAY_APPID` |
 | `WXPAY_MINIAPP_APP_SECRET` | no | That mini program's AppSecret, when it differs from `WXPAY_APP_SECRET`; defaults to `WXPAY_APP_SECRET` |
+| `WXPAY_MINIAPP_MCHID` / `WXPAY_MINIAPP_SERIAL_NO` / `WXPAY_MINIAPP_PRIVATE_KEY` / `WXPAY_MINIAPP_API_V3_KEY` | no | The panel's own merchant identity — WeChat rejects the order unless the panel's appid and mchid are bound. Set only what differs; each falls back to its `WXPAY_*` counterpart |
+| `WXPAY_MINIAPP_PUBLIC_KEY` / `WXPAY_MINIAPP_PUBLIC_KEY_ID` | no | Public-key mode for the panel's merchant, same shape as `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID`; defaults to the pay-side values |
 
 ### What each value must be
 
