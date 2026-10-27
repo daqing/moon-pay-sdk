@@ -17,10 +17,12 @@ Native（扫码）流程和支付宝电脑网站支付（page pay）流程。它
    `Client::jsapi_order` 在微信内下单，返回签名好的
    `wx.requestPayment` 参数集（`Client::jsapi_pay_params`）——可粘到微信
    开发者工具验证，或作为小程序后端调用；订单走同一轮询端点。配置
-   `WXPAY_APP_SECRET` 后页面还会多一个小程序区块：
+   小程序凭据 `WXPAY_MINIAPP_APPID` / `WXPAY_MINIAPP_APP_SECRET`（缺省
+   回退 `WXPAY_APPID` / `WXPAY_APP_SECRET`）后，页面还会多一个小程序区块：
    `POST /api/wechat/miniapp/orders?amount_yuan=…&js_code=…` 用
    `wx.login` 的 code 一步换 openid 并下单（`miniprogram.Client::pay`），
-   返回同样的签名参数集。
+   返回同样的签名参数集；面板的商户身份也可用 `WXPAY_MINIAPP_MCHID` 等
+   变量单独设置（见下表）。
 2. **`/alipay` — 支付宝 · 电脑网站支付** — 通过 `Client::page_pay_url`
    构造签名收银台地址（`POST /api/alipay/orders`，
    `alipay.trade.page.pay`）并把浏览器跳转过去；支付宝把用户带回

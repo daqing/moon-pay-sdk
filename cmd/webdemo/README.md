@@ -21,11 +21,15 @@ is enabled only when its gateway's credentials are configured (each page asks
    order through `Client::jsapi_order` and returns the signed
    `wx.requestPayment` parameter set (`Client::jsapi_pay_params`) — paste it
    into the WeChat devtools or drive it from a mini-program backend; the
-   order polls through the same endpoint. With `WXPAY_APP_SECRET` set the
-   page also gains a mini-program section:
+   order polls through the same endpoint. With the mini-program credentials
+   `WXPAY_MINIAPP_APPID` / `WXPAY_MINIAPP_APP_SECRET` set (falling back to
+   `WXPAY_APPID` / `WXPAY_APP_SECRET`), the page also gains a mini-program
+   section:
    `POST /api/wechat/miniapp/orders?amount_yuan=…&js_code=…` exchanges the
    `wx.login` code for the payer's openid and places the order in one call
-   (`miniprogram.Client::pay`), returning the same signed parameter set.
+   (`miniprogram.Client::pay`), returning the same signed parameter set;
+   the panel's merchant identity can be overridden separately through the
+   `WXPAY_MINIAPP_MCHID` etc. variables (see the table below).
 2. **`/alipay` — Alipay · page pay** — builds the signed cashier URL
    (`POST /api/alipay/orders`, `alipay.trade.page.pay`) through
    `Client::page_pay_url` and redirects the browser to it; when Alipay sends

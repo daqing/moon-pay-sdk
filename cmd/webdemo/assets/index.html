@@ -98,7 +98,7 @@
     <button id="miniappPay" style="margin-top:10px">小程序 code 下单</button>
     <div id="miniappStatus" class="status" style="display:none"></div>
     <pre id="miniappResult" class="hidden" style="margin:8px 0 0; font-size:11px; line-height:1.5; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#51565f; background:#f7f8fa; border-radius:8px; padding:8px 10px; white-space:pre-wrap; word-break:break-all;"></pre>
-    <div class="meta" style="margin-top:6px">需配置 <b>WXPAY_APP_SECRET</b>；服务端用 code 换 openid 并直接下单。</div>
+    <div class="meta" style="margin-top:6px">需配置 <b>WXPAY_MINIAPP_APPID</b> / <b>WXPAY_MINIAPP_APP_SECRET</b>（缺省回退 WXPAY_APPID / WXPAY_APP_SECRET）；服务端用 code 换 openid 后下单，商户身份也可用 <b>WXPAY_MINIAPP_MCHID</b> 等单独设置。</div>
   </details>
 
   <details>
