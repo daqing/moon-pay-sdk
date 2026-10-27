@@ -8,6 +8,7 @@ import {
 }
 
 // Values
+pub async fn code2session_with(config~ : Config, transport~ : &@transport.Transport, js_code~ : String) -> Session raise @moon-pay-sdk.SdkError
 
 // Errors
 

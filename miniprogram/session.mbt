@@ -25,19 +25,23 @@ pub fn Session::unionid(self : Session) -> String? {
 
 ///|
 /// Exchange one `wx.login` code for the payer's openid via
-/// `GET /sns/jscode2session`. Codes are single-use and expire in five
-/// minutes, so call this at order time, not at login time.
-pub async fn Client::code2session(
-  self : Client,
+/// `GET /sns/jscode2session`, using only the mini-program's own
+/// credentials — no merchant pay client or full `Client` required. Codes
+/// are single-use and expire in five minutes, so call this at order time,
+/// not at login time.
+pub async fn code2session_with(
+  config~ : Config,
+  transport~ : &@transport.Transport,
   js_code~ : String,
 ) -> Session raise @moon-pay-sdk.SdkError {
+  config.validate()
   if js_code.is_empty() {
     raise Config("js_code must not be empty")
   }
   // The URL carries the app secret, so transport failures are reported
   // without the underlying error text — it may embed the request URL.
-  let url = "\{self.config.session_base_url}/sns/jscode2session?appid=\{encode_query_value(self.config.app_id)}&secret=\{encode_query_value(self.config.app_secret)}&js_code=\{encode_query_value(js_code)}&grant_type=authorization_code"
-  let response = self.transport.send({ meth: Get, url, headers: [], body: b"", }) catch {
+  let url = "\{config.session_base_url}/sns/jscode2session?appid=\{encode_query_value(config.app_id)}&secret=\{encode_query_value(config.app_secret)}&js_code=\{encode_query_value(js_code)}&grant_type=authorization_code"
+  let response = transport.send({ meth: Get, url, headers: [], body: b"", }) catch {
     _ => raise Network("code2session request failed")
   }
   let text = @utf8.decode_lossy(response.body[:])
@@ -81,4 +85,14 @@ pub async fn Client::code2session(
     _ => None
   }
   { openid, session_key, unionid, }
+}
+
+///|
+/// The `Client` convenience form of `code2session_with`, reusing the
+/// client's session config and transport.
+pub async fn Client::code2session(
+  self : Client,
+  js_code~ : String,
+) -> Session raise @moon-pay-sdk.SdkError {
+  code2session_with(config=self.config, transport=self.transport, js_code~)
 }

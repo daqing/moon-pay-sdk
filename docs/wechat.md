@@ -188,6 +188,17 @@ async fn build_miniapp(wechat : @wechat.Client) -> @miniprogram.Client raise {
 yourself; `Client::pay_with_openid(openid~)` skips the exchange when you
 already keep openids.
 
+When only the mini-program's own credentials are at hand — no merchant pay
+client — use the standalone `code2session_with(config~, transport~, js_code~)`,
+or verify from the command line:
+
+```bash nocheck
+# appid/secret resolve from --flag → WXPAY_APPID / WXPAY_APP_SECRET → an
+# interactive prompt. The code can only come from wx.login inside the WeChat
+# client — pass it with --code or paste it at the prompt.
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
 ## Order query
 
 Callbacks can get lost — query to reconcile, by out-trade number or WeChat

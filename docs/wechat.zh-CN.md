@@ -179,6 +179,15 @@ async fn build_miniapp(wechat : @wechat.Client) -> @miniprogram.Client raise {
 `Client::code2session(js_code~)` 也公开可用，供自行管理换取时机；
 `Client::pay_with_openid(openid~)` 在已保存 openid 时跳过换取。
 
+只要小程序自身密钥（不需要商户支付客户端）时，用独立函数
+`code2session_with(config~, transport~, js_code~)`。命令行验证用：
+
+```bash nocheck
+# appid/secret 依次取 --flag → WXPAY_APPID / WXPAY_APP_SECRET → 交互输入；
+# code 只能来自小程序端 wx.login（微信客户端之外无法生成），可 --code 传入或交互粘贴
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
 ## 查单
 
 回调可能丢失——用查单对账，可按商户订单号或微信交易单号：

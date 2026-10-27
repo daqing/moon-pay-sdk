@@ -1,0 +1,10 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/stdio",
+  "moonbitlang/core/argparse",
+  "moonbitlang/core/env",
+  "daqing/moon-pay-sdk/miniprogram",
+  "daqing/moon-pay-sdk/transport",
+}
+
+pkgtype(kind: "executable")
