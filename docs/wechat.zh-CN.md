@@ -188,6 +188,16 @@ async fn build_miniapp(wechat : @wechat.Client) -> @miniprogram.Client raise {
 moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
 ```
 
+连手动粘贴都可以省掉——`--project` 直接驱动微信开发者工具（自动化端口
+`cli auto`），在真实小程序项目里执行 `wx.login` 抓取新 code；webdemo 页面
+用它换 openid 并下单：
+
+```bash nocheck
+# 前提：开发者工具已登录，且 设置→安全设置→服务端口 已开启；
+# cli 路径依次取 --cli → WXPAY_DEVTOOLS_CLI → macOS/Windows 默认安装位置
+moon run cmd/wxlogin -- --project ~/mini-programs/demo
+```
+
 ## 查单
 
 回调可能丢失——用查单对账，可按商户订单号或微信交易单号：

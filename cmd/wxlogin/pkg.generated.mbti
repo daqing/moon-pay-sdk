@@ -1,11 +1,36 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "daqing/moon-pay-sdk/cmd/wxlogin"
 
+import {
+  "moonbitlang/async/websocket",
+}
+
 // Values
+pub async fn fetch_login_code(endpoint~ : String) -> String
+
+pub async fn launch_devtools(cli_path~ : String, project_path~ : String, port~ : Int32, trust_project? : Bool) -> Unit
+
+pub fn login_code_from(Json) -> String raise
 
 // Errors
+pub suberror Automation {
+  Launch(String)
+  Connect(String)
+  Protocol(String)
+  Timeout(String)
+}
+pub impl Show for Automation
 
 // Types and methods
+pub struct Automator {
+  ws : @websocket.Conn
+  mut seq : Int32
+}
+pub async fn Automator::call_wx_method(Self, String) -> Json
+pub async fn Automator::close(Self) -> Unit
+pub async fn Automator::connect(String) -> Self
+pub async fn Automator::get_info(Self) -> Json
+pub async fn Automator::send(Self, api~ : String, params? : Json) -> Json
 
 // Type aliases
 

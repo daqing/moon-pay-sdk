@@ -199,6 +199,18 @@ or verify from the command line:
 moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
 ```
 
+Even the paste can go away — `--project` drives WeChat DevTools over its
+automation port (`cli auto`), runs `wx.login` inside the real mini-program
+project and prints a fresh code; the webdemo panel exchanges it for the
+openid and places the order:
+
+```bash nocheck
+# Prerequisites: DevTools logged in, and Settings → Security → Service Port
+# enabled. The cli path resolves from --cli → WXPAY_DEVTOOLS_CLI → the
+# default macOS/Windows install location.
+moon run cmd/wxlogin -- --project ~/mini-programs/demo
+```
+
 ## Order query
 
 Callbacks can get lost — query to reconcile, by out-trade number or WeChat

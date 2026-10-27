@@ -12,6 +12,13 @@
 ///
 /// Missing values fall back to `WXPAY_APPID` / `WXPAY_APP_SECRET` (the
 /// same variables cmd/webdemo uses) and finally to an interactive prompt.
+///
+/// With `--project <dir>` the command instead drives WeChat DevTools over
+/// its automation port, runs `wx.login` inside the real project and just
+/// prints the fresh code — hand it to the webdemo mini-program panel,
+/// which exchanges it for the openid and places the order:
+///
+///     moon run cmd/wxlogin -- --project ~/mini-programs/demo
 async fn main {
   let matches = @argparse.Command(
     "wxlogin",
@@ -32,8 +39,31 @@ async fn main {
         long="code",
         about="fresh js_code from wx.login (single use, expires in 5 minutes)",
       ),
+      OptionArg(
+        "project",
+        long="project",
+        about="mini-program project dir: drive WeChat DevTools to grab a real wx.login code automatically",
+      ),
+      OptionArg(
+        "cli",
+        long="cli",
+        about="WeChat DevTools cli binary (falls back to $WXPAY_DEVTOOLS_CLI, then the macOS default)",
+      ),
     ],
   ).parse()
+  let project = match matches.values {
+    { "project": [value], .. } => Some(value)
+    _ => None
+  }
+  let cli_flag = match matches.values {
+    { "cli": [value], .. } => Some(value)
+    _ => None
+  }
+  match project {
+    Some(project) if !project.is_empty() =>
+      return run_auto_mode(cli_flag, project)
+    _ => ()
+  }
   let appid_flag = match matches.values {
     { "appid": [value], .. } => Some(value)
     _ => None
@@ -157,4 +187,94 @@ fn errcode_hint(code : String) -> String {
     "-1" => "WeChat system busy — retry shortly"
     _ => "see WeChat's global return code list"
   }
+}
+
+///|
+/// Default DevTools cli location (matches what miniprogram-automator
+/// resolves: the Windows cli.bat when present, else the macOS bundle).
+async fn default_cli_path() -> String {
+  let windows = "C:/Program Files (x86)/Tencent/微信web开发者工具/cli.bat"
+  if @fs.exists(windows) {
+    windows
+  } else {
+    "/Applications/wechatwebdevtools.app/Contents/MacOS/cli"
+  }
+}
+
+///|
+/// Automation mode: launch WeChat DevTools with its automation port,
+/// run `wx.login` inside the real project and print the fresh code. No
+/// appid/secret needed here — webdemo does the openid exchange and the
+/// order with this code.
+async fn run_auto_mode(cli_flag : String?, project_path : String) -> Unit {
+  let cli_path = match cli_flag {
+    Some(path) if !path.is_empty() => path
+    _ =>
+      match @env.get_env_var("WXPAY_DEVTOOLS_CLI") {
+        Some(path) if !path.is_empty() => path
+        _ => default_cli_path()
+      }
+  }
+  if !@fs.exists(cli_path) {
+    fail(
+      "DevTools cli not found at \{cli_path} — pass --cli <path> or set WXPAY_DEVTOOLS_CLI",
+    )
+  }
+  if !@fs.exists(project_path) {
+    fail("mini-program project not found: \{project_path}")
+  }
+  println(
+    "fetching a fresh wx.login code from the DevTools project \{project_path}",
+  )
+  launch_devtools(cli_path~, project_path~, port=DEFAULT_AUTO_PORT)
+  let automator = Automator::connect("ws://127.0.0.1:\{DEFAULT_AUTO_PORT}")
+  let code = try
+    @async.with_timeout(
+      60_000,
+      () => grab_code(automator),
+      error=Timeout("wx.login via DevTools timed out after 60s"),
+    )
+  catch {
+    e => {
+      automator.close()
+      println("")
+      println("automation failed: \{e}")
+      fail("wxlogin aborted")
+    }
+  } noraise {
+    code => {
+      automator.close()
+      code
+    }
+  }
+  print_code(code, project_path)
+}
+
+///|
+/// Liveness probe, then the login call itself.
+async fn grab_code(automator : Automator) -> String {
+  let _ = automator.get_info()
+  let result = automator.call_wx_method("login")
+  login_code_from(result)
+}
+
+///|
+/// The automation port miniprogram-automator uses by default.
+const DEFAULT_AUTO_PORT : Int32 = 9420
+
+///|
+/// Print the grabbed code plus the fastest way to turn it into an order.
+fn print_code(code : String, project_path : String) -> Unit {
+  println("")
+  println("wx.login ok — fresh code from the DevTools project:")
+  println("  project : \{project_path}")
+  println("  code    : \{code}")
+  println("")
+  println("next: paste it into the webdemo mini-program panel, or POST it:")
+  println(
+    "  curl -X POST 'http://127.0.0.1:1943/api/wechat/miniapp/orders?amount_yuan=0.01&js_code=\{code}'",
+  )
+  println(
+    "(single use, expires in 5 minutes; the IDE stays open — rerun for another code)",
+  )
 }
