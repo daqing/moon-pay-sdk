@@ -13,7 +13,7 @@
     color: #1f2329;
   }
   .card {
-    width: 400px; background: #fff; border-radius: 16px; padding: 28px 32px 24px;
+    width: 480px; background: #fff; border-radius: 16px; padding: 28px 32px 24px;
     box-shadow: 0 6px 24px rgba(15, 23, 42, .08);
   }
   h1 { font-size: 17px; margin: 0 0 2px; }
@@ -56,8 +56,10 @@
 <body>
 <div>
 <div class="card">
-  <h1>微信支付 · Native 扫码</h1>
-  <div class="sub">moon-pay-sdk 集成测试 — 真实网关，真实扣款，金额请选最小档</div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+    <h1>微信支付</h1>
+    <a style="font-size: smaller;" href="/alipay">支付宝 · 电脑网站支付 →</a>
+  </div>
 
   <div class="row">
     <span class="label">支付金额</span>
@@ -104,7 +106,6 @@
     <div id="log"></div>
   </details>
 </div>
-<div class="switch"><a href="/alipay">支付宝 · 电脑网站支付 →</a></div>
 </div>
 
 <script src="/assets/qrcode.js"></script>
