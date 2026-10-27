@@ -16,7 +16,7 @@ pub fn NativeOrder::code_url(self : NativeOrder) -> String {
 pub async fn Client::native_order(
   self : Client,
   out_trade_no~ : String,
-  total~ : Int,
+  total~ : Int32,
   description~ : String,
   notify_url~ : String,
 ) -> NativeOrder raise @moon-pay-sdk.SdkError {

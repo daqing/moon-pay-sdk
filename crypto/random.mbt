@@ -1,7 +1,7 @@
 ///|
 /// Cryptographic random bytes from the operating system entropy pool
 /// (/dev/urandom on Linux and macOS).
-pub async fn random_bytes(len : Int) -> Bytes raise CryptoError {
+pub async fn random_bytes(len : Int32) -> Bytes raise CryptoError {
   if len < 0 {
     raise Random("negative byte count \{len}")
   }
@@ -17,7 +17,7 @@ pub async fn random_bytes(len : Int) -> Bytes raise CryptoError {
 ///|
 /// A lowercase-hex random string, two characters per byte — the shape of
 /// WeChat Pay's nonce_str.
-pub async fn random_hex(byte_len : Int) -> String raise CryptoError {
+pub async fn random_hex(byte_len : Int32) -> String raise CryptoError {
   let bytes = random_bytes(byte_len)
   @base16.encode(bytes[:])
 }

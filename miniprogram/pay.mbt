@@ -64,7 +64,7 @@ pub fn PayResult::pay_params(self : PayResult) -> @wechat.JsapiPayParams {
 pub async fn Client::pay(
   self : Client,
   out_trade_no~ : String,
-  total~ : Int,
+  total~ : Int32,
   description~ : String,
   notify_url~ : String,
   js_code~ : String,
@@ -86,7 +86,7 @@ pub async fn Client::pay(
 pub async fn Client::pay_with_openid(
   self : Client,
   out_trade_no~ : String,
-  total~ : Int,
+  total~ : Int32,
   description~ : String,
   notify_url~ : String,
   openid~ : String,

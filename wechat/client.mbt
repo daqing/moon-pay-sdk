@@ -14,8 +14,8 @@ pub struct Client {
 pub fn Client::new(
   config~ : Config,
   transport~ : &@transport.Transport,
-  now_ms? : () -> Int64 = () => @async.now(),
-  verify_responses? : Bool = true,
+  now_ms~ : () -> Int64 = () => @async.now(),
+  verify_responses~ : Bool = true,
 ) -> Client raise @moon-pay-sdk.SdkError {
   config.validate()
   let private_key = @crypto.load_private_key_pem(config.private_key_pem) catch {
@@ -44,7 +44,7 @@ fn field(json : Json, key : String) -> String raise @moon-pay-sdk.SdkError {
 /// Build the `SdkError::Api` for a non-success response, keeping the
 /// provider's structured code and message when the body is the expected
 /// JSON error envelope.
-fn api_error_from(status : Int, body_text : String) -> @moon-pay-sdk.SdkError {
+fn api_error_from(status : Int32, body_text : String) -> @moon-pay-sdk.SdkError {
   let json = @moon-pay-sdk.try_parse_json(body_text)
   let default_message = {
     let trimmed = body_text.trim()
@@ -79,7 +79,7 @@ async fn Client::request_json(
   meth~ : @transport.Method,
   path~ : String,
   body~ : String,
-  verify? : Bool = true,
+  verify~ : Bool = true,
 ) -> Json raise @moon-pay-sdk.SdkError {
   let nonce = @crypto.random_hex(16) catch { e => raise Crypto(e) }
   let timestamp = (self.now_ms)() / 1000

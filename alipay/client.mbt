@@ -14,7 +14,7 @@ pub struct Client {
 pub fn Client::new(
   config~ : Config,
   transport~ : &@transport.Transport,
-  now_ms? : () -> Int64 = () => @async.now(),
+  now_ms~ : () -> Int64 = () => @async.now(),
 ) -> Client raise @moon-pay-sdk.SdkError {
   config.validate()
   let private_key = @crypto.load_private_key_pem(config.private_key_pem) catch {

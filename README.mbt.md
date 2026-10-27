@@ -168,7 +168,7 @@ async fn handle_wechat_callback(
   wechat : @wechat.Client,
   headers : Array[(String, String)],
   body : Bytes,
-) -> (Int, String) {
+) -> (Int32, String) {
   // Verifies the WeChat Pay signature (replay window included), decrypts the
   // AES-256-GCM resource and returns the parsed payment result.
   let notification = wechat.verify_callback(headers, body)

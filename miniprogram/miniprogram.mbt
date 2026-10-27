@@ -16,7 +16,7 @@ pub(all) struct Config {
 pub fn Config::new(
   app_id~ : String,
   app_secret~ : String,
-  session_base_url? : String = "https://api.weixin.qq.com",
+  session_base_url~ : String = "https://api.weixin.qq.com",
 ) -> Config {
   { app_id, app_secret, session_base_url, }
 }
@@ -66,7 +66,7 @@ fn encode_query_value(text : StringView) -> String {
 }
 
 ///|
-fn hex_digit(value : Int) -> String {
+fn hex_digit(value : Int32) -> String {
   let digits = "0123456789ABCDEF"
   let ch = match digits.get_char(value) {
     Some(c) => c

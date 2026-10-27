@@ -71,7 +71,7 @@ pub fn string_field(json : Json, key : String) -> String raise JsonError {
 ///|
 /// The integer value of an object field. JSON numbers that carry a fraction
 /// are rejected rather than truncated.
-pub fn int_field(json : Json, key : String) -> Int raise JsonError {
+pub fn int_field(json : Json, key : String) -> Int32 raise JsonError {
   let number = match field(json, key) {
     Number(number, ..) => number
     _ => raise WrongType(key, "number")

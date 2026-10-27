@@ -11,7 +11,7 @@ let notification_nonce : Bytes = b"abc123def456"
 fn notification_callback(
   api_v3_key : String,
   aad : String,
-  declared_aad? : String = "",
+  declared_aad~ : String = "",
 ) -> (Array[(String, String)], Bytes) {
   let declared_aad = if declared_aad == "" { aad } else { declared_aad }
   let ciphertext = gcm_seal(

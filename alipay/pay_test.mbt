@@ -1,6 +1,6 @@
 ///|
 fn mock_client(
-  responses? : Array[@transport.Response] = [],
+  responses~ : Array[@transport.Response] = [],
 ) -> (@alipay.Client, @transport.MockTransport) {
   let mock = @transport.MockTransport::new(responses)
   let client = @alipay.Client::new(config=alipay_config(), transport=mock, now_ms=() => {

@@ -46,8 +46,8 @@ pub(all) struct OrderStatus {
   out_trade_no : String
   transaction_id : String
   trade_state : TradeState
-  total_fen : Int
-  payer_fen : Int?
+  total_fen : Int32
+  payer_fen : Int32?
   success_time : String?
 }
 
@@ -67,12 +67,12 @@ pub fn OrderStatus::trade_state(self : OrderStatus) -> TradeState {
 }
 
 ///|
-pub fn OrderStatus::total_fen(self : OrderStatus) -> Int {
+pub fn OrderStatus::total_fen(self : OrderStatus) -> Int32 {
   self.total_fen
 }
 
 ///|
-pub fn OrderStatus::payer_fen(self : OrderStatus) -> Int? {
+pub fn OrderStatus::payer_fen(self : OrderStatus) -> Int32? {
   self.payer_fen
 }
 
@@ -89,14 +89,14 @@ fn obj_field(json : Json, key : String) -> Json raise @moon-pay-sdk.SdkError {
 }
 
 ///|
-fn int_field(json : Json, key : String) -> Int raise @moon-pay-sdk.SdkError {
+fn int_field(json : Json, key : String) -> Int32 raise @moon-pay-sdk.SdkError {
   @moon-pay-sdk.int_field(json, key) catch {
     e => raise Network("response field \"\{key}\": \{e}")
   }
 }
 
 ///|
-fn optional_int(json : Json, key : String) -> Int? {
+fn optional_int(json : Json, key : String) -> Int32? {
   match json {
     Object(fields) =>
       match fields.get(key) {

@@ -23,7 +23,7 @@
 ///|
 /// One order this app has placed, keyed by out_trade_no.
 priv struct OrderRec {
-  amount_fen : Int
+  amount_fen : Int32
   mut notify_seen : Bool
 }
 
@@ -35,11 +35,11 @@ priv struct App {
   alipay : @alipay.Client?
   alipay_notify_url : String
   orders : Map[String, OrderRec]
-  mut seq : Int
+  mut seq : Int32
 }
 
 ///|
-const LISTEN_PORT : Int = 1943
+const LISTEN_PORT : Int32 = 1943
 
 ///|
 async fn main {
@@ -489,7 +489,7 @@ async fn handle_create_order(
     Some(yuan) => yuan
     None => "0.01"
   }
-  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
     _ => 0
   } noraise {
     fen => fen
@@ -556,7 +556,7 @@ async fn handle_create_jsapi_order(
     Some(yuan) => yuan
     None => "0.01"
   }
-  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
     _ => 0
   } noraise {
     fen => fen
@@ -650,7 +650,7 @@ async fn handle_create_miniapp_order(
     Some(yuan) => yuan
     None => "0.01"
   }
-  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
     _ => 0
   } noraise {
     fen => fen
@@ -850,7 +850,7 @@ async fn handle_create_alipay_order(
     Some(yuan) => yuan
     None => "0.01"
   }
-  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
     _ => 0
   } noraise {
     fen => fen
@@ -1026,7 +1026,7 @@ fn next_out_trade_no(app : App) -> String {
 }
 
 ///|
-fn pad(n : Int, width : Int) -> String {
+fn pad(n : Int32, width : Int32) -> String {
   let s = n.to_string()
   let mut zeros = ""
   let mut left = width - s.length()
@@ -1095,7 +1095,7 @@ fn query_param(path : String, key~ : String) -> String? {
 ///|
 async fn respond_json(
   conn : @http.ServerConnection,
-  status : Int,
+  status : Int32,
   body : Json,
 ) -> Unit {
   respond_text(
@@ -1109,7 +1109,7 @@ async fn respond_json(
 ///|
 async fn respond_json_raw(
   conn : @http.ServerConnection,
-  status : Int,
+  status : Int32,
   body : String,
 ) -> Unit {
   respond_text(conn, status, "application/json; charset=utf-8", body)
@@ -1118,7 +1118,7 @@ async fn respond_json_raw(
 ///|
 async fn respond_text(
   conn : @http.ServerConnection,
-  status : Int,
+  status : Int32,
   content_type : String,
   body : String,
 ) -> Unit {

@@ -7,8 +7,8 @@ pub(all) struct Notification {
   out_trade_no : String
   transaction_id : String
   trade_state : TradeState
-  total_fen : Int
-  payer_fen : Int?
+  total_fen : Int32
+  payer_fen : Int32?
   resource : Json
 }
 
@@ -38,12 +38,12 @@ pub fn Notification::trade_state(self : Notification) -> TradeState {
 }
 
 ///|
-pub fn Notification::total_fen(self : Notification) -> Int {
+pub fn Notification::total_fen(self : Notification) -> Int32 {
   self.total_fen
 }
 
 ///|
-pub fn Notification::payer_fen(self : Notification) -> Int? {
+pub fn Notification::payer_fen(self : Notification) -> Int32? {
   self.payer_fen
 }
 

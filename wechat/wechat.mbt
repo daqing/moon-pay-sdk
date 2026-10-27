@@ -24,9 +24,9 @@ pub fn Config::new(
   serial_no~ : String,
   private_key_pem~ : String,
   api_v3_key~ : String,
-  base_url? : String = "https://api.mch.weixin.qq.com",
-  platform_public_key_pem? : String = "",
-  platform_public_key_id? : String = "",
+  base_url~ : String = "https://api.mch.weixin.qq.com",
+  platform_public_key_pem~ : String = "",
+  platform_public_key_id~ : String = "",
 ) -> Config {
   {
     appid,
