@@ -9,9 +9,9 @@ import {
 }
 
 // Values
-pub fn ack_failure(message~ : String) -> (Int, String)
+pub fn ack_failure(message~ : String) -> (Int32, String)
 
-pub fn ack_success() -> (Int, String)
+pub fn ack_success() -> (Int32, String)
 
 pub fn authorization_header(Config, @rsa.PrivateKey, meth~ : String, path~ : String, timestamp~ : Int64, nonce~ : String, body~ : String) -> String
 
@@ -39,10 +39,10 @@ pub struct Client {
   certs : Map[String, @rsa.PublicKey]
   verify_responses : Bool
 }
-pub async fn Client::h5_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, payer_client_ip~ : String) -> H5Order raise @moon-pay-sdk.SdkError
-pub async fn Client::jsapi_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, openid~ : String) -> JsapiOrder raise @moon-pay-sdk.SdkError
+pub async fn Client::h5_order(Self, out_trade_no~ : String, total~ : Int32, description~ : String, notify_url~ : String, payer_client_ip~ : String) -> H5Order raise @moon-pay-sdk.SdkError
+pub async fn Client::jsapi_order(Self, out_trade_no~ : String, total~ : Int32, description~ : String, notify_url~ : String, openid~ : String) -> JsapiOrder raise @moon-pay-sdk.SdkError
 pub async fn Client::jsapi_pay_params(Self, prepay_id~ : String) -> JsapiPayParams raise @moon-pay-sdk.SdkError
-pub async fn Client::native_order(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String) -> NativeOrder raise @moon-pay-sdk.SdkError
+pub async fn Client::native_order(Self, out_trade_no~ : String, total~ : Int32, description~ : String, notify_url~ : String) -> NativeOrder raise @moon-pay-sdk.SdkError
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64, verify_responses? : Bool) -> Self raise @moon-pay-sdk.SdkError
 pub async fn Client::parse_notification(Self, Array[(String, String)], Bytes) -> Notification raise @moon-pay-sdk.SdkError
 pub async fn Client::platform_public_key(Self, String) -> @rsa.PublicKey raise @moon-pay-sdk.SdkError
@@ -50,7 +50,7 @@ pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus ra
 pub async fn Client::query_order_by_id(Self, transaction_id~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
 pub async fn Client::refresh_platform_certs(Self) -> Unit raise @moon-pay-sdk.SdkError
 pub async fn Client::verify_callback(Self, Array[(String, String)], Bytes) -> Notification raise @moon-pay-sdk.SdkError
-pub async fn Client::verify_callback_signature(Self, headers~ : CallbackHeaders, body~ : StringView, window_seconds? : Int) -> Unit raise @moon-pay-sdk.SdkError
+pub async fn Client::verify_callback_signature(Self, headers~ : CallbackHeaders, body~ : StringView, window_seconds? : Int32) -> Unit raise @moon-pay-sdk.SdkError
 
 pub(all) struct Config {
   appid : String
@@ -101,33 +101,33 @@ pub(all) struct Notification {
   out_trade_no : String
   transaction_id : String
   trade_state : TradeState
-  total_fen : Int
-  payer_fen : Int?
+  total_fen : Int32
+  payer_fen : Int32?
   resource : Json
 }
 pub fn Notification::event_type(Self) -> String
 pub fn Notification::out_trade_no(Self) -> String
-pub fn Notification::payer_fen(Self) -> Int?
+pub fn Notification::payer_fen(Self) -> Int32?
 pub fn Notification::resource(Self) -> Json
 pub fn Notification::summary(Self) -> String?
-pub fn Notification::total_fen(Self) -> Int
+pub fn Notification::total_fen(Self) -> Int32
 pub fn Notification::trade_state(Self) -> TradeState
 pub fn Notification::transaction_id(Self) -> String
 
 pub(all) struct OrderStatus {
   out_trade_no : String
-  transaction_id : String
+  transaction_id : String?
   trade_state : TradeState
-  total_fen : Int
-  payer_fen : Int?
+  total_fen : Int32
+  payer_fen : Int32?
   success_time : String?
 }
 pub fn OrderStatus::out_trade_no(Self) -> String
-pub fn OrderStatus::payer_fen(Self) -> Int?
+pub fn OrderStatus::payer_fen(Self) -> Int32?
 pub fn OrderStatus::success_time(Self) -> String?
-pub fn OrderStatus::total_fen(Self) -> Int
+pub fn OrderStatus::total_fen(Self) -> Int32
 pub fn OrderStatus::trade_state(Self) -> TradeState
-pub fn OrderStatus::transaction_id(Self) -> String
+pub fn OrderStatus::transaction_id(Self) -> String?
 
 pub(all) enum TradeState {
   Success

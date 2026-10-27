@@ -64,7 +64,8 @@ request is sent.
 
 ### Order query
 
-`OrderStatus` carries `out_trade_no`, `transaction_id`, `trade_state`,
+`OrderStatus` carries `out_trade_no`, `transaction_id` (present only after
+the payment succeeded — unpaid orders answer without it), `trade_state`,
 `total_fen`, optional `payer_fen` and optional `success_time`.
 
 `TradeState` covers every documented state — `SUCCESS`, `REFUND`, `NOTPAY`,

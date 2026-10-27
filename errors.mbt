@@ -5,14 +5,14 @@
 pub(all) struct ApiError {
   code : String
   message : String
-  http_status : Int?
+  http_status : Int32?
 }
 
 ///|
 pub fn ApiError::new(
   code~ : String,
   message~ : String,
-  http_status? : Int? = None,
+  http_status~ : Int32? = None,
 ) -> ApiError {
   { code, message, http_status, }
 }

@@ -179,6 +179,25 @@ async fn build_miniapp(wechat : @wechat.Client) -> @miniprogram.Client raise {
 `Client::code2session(js_code~)` 也公开可用，供自行管理换取时机；
 `Client::pay_with_openid(openid~)` 在已保存 openid 时跳过换取。
 
+只要小程序自身密钥（不需要商户支付客户端）时，用独立函数
+`code2session_with(config~, transport~, js_code~)`。命令行验证用：
+
+```bash nocheck
+# appid/secret 依次取 --flag → WXPAY_APPID / WXPAY_APP_SECRET → 交互输入；
+# code 只能来自小程序端 wx.login（微信客户端之外无法生成），可 --code 传入或交互粘贴
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+连手动粘贴都可以省掉——`--project` 直接驱动微信开发者工具（自动化端口
+`cli auto`），在真实小程序项目里执行 `wx.login` 抓取新 code；webdemo 页面
+用它换 openid 并下单：
+
+```bash nocheck
+# 前提：开发者工具已登录，且 设置→安全设置→服务端口 已开启；
+# cli 路径依次取 --cli → WXPAY_DEVTOOLS_CLI → macOS/Windows 默认安装位置
+moon run cmd/wxlogin -- --project ~/mini-programs/demo
+```
+
 ## 查单
 
 回调可能丢失——用查单对账，可按商户订单号或微信交易单号：
@@ -238,7 +257,11 @@ async fn handle_wechat_callback(
 | `WXPAY_PUBLIC_KEY` | 否 | 公钥模式：控制台下载的微信支付公钥（`pub_key.pem`），PEM 文本或文件路径 |
 | `WXPAY_PUBLIC_KEY_ID` | 否 | 公钥模式：旁边显示的 `PUB_KEY_ID_…` 序列号——两个都填或都不填 |
 | `WXPAY_NOTIFY_URL` | 否 | 下单时传入的回调地址，默认为占位符 |
-| `WXPAY_APP_SECRET` | 否 | 小程序 AppSecret（小程序 → 开发管理 → 开发设置）；启用小程序支付区块，服务端用它换取 `wx.login` code 对应的 openid |
+| `WXPAY_APP_SECRET` | 否 | 小程序 AppSecret（小程序 → 开发管理 → 开发设置）；启用小程序支付区块，服务端用它换取 `wx.login` code 对应的 openid。需指向别的小程序时，用下方的 `WXPAY_MINIAPP_APPID`/`WXPAY_MINIAPP_APP_SECRET` |
+| `WXPAY_MINIAPP_APPID` | 否 | 小程序自己的 appid——登录换取和小程序面板的 JSAPI 下单都用它——与 `WXPAY_APPID` 不同的小程序时设置；缺省用 `WXPAY_APPID` |
+| `WXPAY_MINIAPP_APP_SECRET` | 否 | 该小程序的 AppSecret（与 `WXPAY_APP_SECRET` 不同时设置）；缺省用 `WXPAY_APP_SECRET` |
+| `WXPAY_MINIAPP_MCHID` / `WXPAY_MINIAPP_SERIAL_NO` / `WXPAY_MINIAPP_PRIVATE_KEY` / `WXPAY_MINIAPP_API_V3_KEY` | 否 | 小程序面板自己的商户身份——appid 与 mch_id 没有绑定关系时微信会拒单。只设不同的项；每项缺省回退对应的 `WXPAY_*` |
+| `WXPAY_MINIAPP_PUBLIC_KEY` / `WXPAY_MINIAPP_PUBLIC_KEY_ID` | 否 | 面板商户的公钥模式，形态同 `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID`；缺省用支付侧的值 |
 
 ### 每个值必须填什么
 
@@ -260,8 +283,9 @@ async fn handle_wechat_callback(
 
 - **`http://127.0.0.1:1943/`** — 微信页：Native 扫码支付（2 秒轮询）、
   JSAPI 区块（输入 openid，输出 `wx.requestPayment` 参数）以及配置了
-  `WXPAY_APP_SECRET` 后的小程序区块（输入登录 code，输出参数）。回调落在
-  `POST /api/wechat/notify`。
+  小程序凭据（`WXPAY_MINIAPP_APPID`/`WXPAY_MINIAPP_APP_SECRET`，缺省回退
+  `WXPAY_APPID`/`WXPAY_APP_SECRET`）后的小程序区块（输入登录 code，输出
+  参数）。回调落在 `POST /api/wechat/notify`。
 - **`http://127.0.0.1:1943/alipay`** — 支付宝页（见支付宝文档）。
 
 页面加载时查询 `GET /api/config` 得知哪些面板可用；变量不齐的网关不会被

@@ -8,6 +8,7 @@ import {
 }
 
 // Values
+pub async fn code2session_with(config~ : Config, transport~ : &@transport.Transport, js_code~ : String) -> Session raise @moon-pay-sdk.SdkError
 
 // Errors
 
@@ -19,8 +20,8 @@ pub struct Client {
 }
 pub async fn Client::code2session(Self, js_code~ : String) -> Session raise @moon-pay-sdk.SdkError
 pub fn Client::new(config~ : Config, pay~ : @wechat.Client, transport~ : &@transport.Transport) -> Self raise @moon-pay-sdk.SdkError
-pub async fn Client::pay(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, js_code~ : String) -> PayResult raise @moon-pay-sdk.SdkError
-pub async fn Client::pay_with_openid(Self, out_trade_no~ : String, total~ : Int, description~ : String, notify_url~ : String, openid~ : String) -> PayResult raise @moon-pay-sdk.SdkError
+pub async fn Client::pay(Self, out_trade_no~ : String, total~ : Int32, description~ : String, notify_url~ : String, js_code~ : String) -> PayResult raise @moon-pay-sdk.SdkError
+pub async fn Client::pay_with_openid(Self, out_trade_no~ : String, total~ : Int32, description~ : String, notify_url~ : String, openid~ : String) -> PayResult raise @moon-pay-sdk.SdkError
 
 pub(all) struct Config {
   app_id : String

@@ -1,0 +1,20 @@
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/process",
+  "moonbitlang/async/stdio",
+  "moonbitlang/async/websocket",
+  "moonbitlang/core/argparse",
+  "moonbitlang/core/env",
+  "moonbitlang/core/encoding/utf8",
+  "daqing/moon-pay-sdk",
+  "daqing/moon-pay-sdk/miniprogram",
+  "daqing/moon-pay-sdk/transport",
+}
+
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/async/socket",
+} for "test"
+
+pkgtype(kind: "executable")

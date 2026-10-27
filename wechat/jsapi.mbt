@@ -62,7 +62,7 @@ pub fn JsapiPayParams::pay_sign(self : JsapiPayParams) -> String {
 pub async fn Client::jsapi_order(
   self : Client,
   out_trade_no~ : String,
-  total~ : Int,
+  total~ : Int32,
   description~ : String,
   notify_url~ : String,
   openid~ : String,

@@ -41,13 +41,13 @@ pub struct Client {
   now_ms : () -> Int64
 }
 pub fn Client::new(config~ : Config, transport~ : &@transport.Transport, now_ms? : () -> Int64) -> Self raise @moon-pay-sdk.SdkError
-pub fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
+pub fn Client::page_pay_url(Self, out_trade_no~ : String, total_fen~ : Int32, subject~ : String, notify_url~ : String, return_url~ : String) -> String raise @moon-pay-sdk.SdkError
 pub async fn Client::query_order(Self, out_trade_no~ : String) -> OrderStatus raise @moon-pay-sdk.SdkError
 pub fn Client::verify_content(Self, String, StringView) -> Bool
 pub fn Client::verify_notify(Self, Array[(String, String)]) -> NotifyResult raise @moon-pay-sdk.SdkError
 pub fn Client::verify_return_params(Self, StringView) -> Array[(String, String)] raise @moon-pay-sdk.SdkError
 pub fn Client::verify_signature(Self, Array[(String, String)], StringView) -> Bool
-pub fn Client::wap_pay_url(Self, out_trade_no~ : String, total_fen~ : Int, subject~ : String, notify_url~ : String) -> String raise @moon-pay-sdk.SdkError
+pub fn Client::wap_pay_url(Self, out_trade_no~ : String, total_fen~ : Int32, subject~ : String, notify_url~ : String) -> String raise @moon-pay-sdk.SdkError
 
 pub(all) struct Config {
   app_id : String
@@ -63,17 +63,17 @@ pub(all) struct NotifyResult {
   out_trade_no : String
   trade_no : String
   total_amount : String
-  total_fen : Int
+  total_fen : Int32
   app_id : String
   seller_id : String?
   raw : Array[(String, String)]
 }
-pub fn NotifyResult::amount_matches(Self, Int) -> Bool
+pub fn NotifyResult::amount_matches(Self, Int32) -> Bool
 pub fn NotifyResult::app_id(Self) -> String
 pub fn NotifyResult::out_trade_no(Self) -> String
 pub fn NotifyResult::seller_id(Self) -> String?
 pub fn NotifyResult::total_amount(Self) -> String
-pub fn NotifyResult::total_fen(Self) -> Int
+pub fn NotifyResult::total_fen(Self) -> Int32
 pub fn NotifyResult::trade_no(Self) -> String
 pub fn NotifyResult::trade_status(Self) -> TradeStatus
 
@@ -82,13 +82,13 @@ pub(all) struct OrderStatus {
   trade_no : String
   trade_status : TradeStatus
   total_amount : String
-  total_fen : Int
+  total_fen : Int32
   send_pay_date : String?
 }
 pub fn OrderStatus::out_trade_no(Self) -> String
 pub fn OrderStatus::send_pay_date(Self) -> String?
 pub fn OrderStatus::total_amount(Self) -> String
-pub fn OrderStatus::total_fen(Self) -> Int
+pub fn OrderStatus::total_fen(Self) -> Int32
 pub fn OrderStatus::trade_no(Self) -> String
 pub fn OrderStatus::trade_status(Self) -> TradeStatus
 

@@ -7,7 +7,7 @@ fn Client::pay_url(
   api_method~ : String,
   biz~ : Json,
   notify_url~ : String,
-  return_url? : String? = None,
+  return_url~ : String? = None,
 ) -> String {
   let timestamp = format_beijing((self.now_ms)())
   let params = system_params(
@@ -28,7 +28,7 @@ fn Client::pay_url(
 pub fn Client::page_pay_url(
   self : Client,
   out_trade_no~ : String,
-  total_fen~ : Int,
+  total_fen~ : Int32,
   subject~ : String,
   notify_url~ : String,
   return_url~ : String,
@@ -57,7 +57,7 @@ pub fn Client::page_pay_url(
 pub fn Client::wap_pay_url(
   self : Client,
   out_trade_no~ : String,
-  total_fen~ : Int,
+  total_fen~ : Int32,
   subject~ : String,
   notify_url~ : String,
 ) -> String raise @moon-pay-sdk.SdkError {

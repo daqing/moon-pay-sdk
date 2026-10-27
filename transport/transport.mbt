@@ -17,7 +17,7 @@ pub(all) struct Request {
 ///|
 /// A payment-provider HTTP response.
 pub(all) struct Response {
-  status : Int
+  status : Int32
   headers : Array[(String, String)]
   body : Bytes
 }

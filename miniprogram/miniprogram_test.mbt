@@ -206,3 +206,54 @@ async test "an empty login code is rejected without a request" {
   assert_eq(verdict, "rejected")
   assert_eq(session_mock.recorded().length(), 0)
 }
+
+///|
+async test "code2session_with exchanges a code without a pay client" {
+  let mock = @transport.MockTransport::new([
+    {
+      status: 200,
+      headers: [],
+      body: b"{\"openid\":\"oOpenId123\",\"session_key\":\"c2Vzc2lvbg==\"}",
+    },
+  ])
+  let session = @miniprogram.code2session_with(
+    config=@miniprogram.Config::new(
+      app_id="wx8888888888888888",
+      app_secret="test-secret",
+      session_base_url="https://session.example.test",
+    ),
+    transport=mock,
+    js_code="081Ab2Cd3Ef4Gh5",
+  )
+  assert_eq(session.openid(), "oOpenId123")
+  assert_eq(session.session_key(), "c2Vzc2lvbg==")
+  assert_eq(session.unionid(), None)
+  let request = mock.recorded()[0]
+  assert_true(request.meth is Get)
+  assert_true(
+    request.url.has_prefix("https://session.example.test/sns/jscode2session?"),
+  )
+  assert_true(request.url.contains("appid=wx8888888888888888"))
+  assert_true(request.url.contains("secret=test-secret"))
+  assert_true(request.url.contains("js_code=081Ab2Cd3Ef4Gh5"))
+  assert_true(request.url.contains("grant_type=authorization_code"))
+}
+
+///|
+async test "code2session_with validates the config before any request" {
+  let mock = @transport.MockTransport::new([])
+  let verdict : String = try
+    @miniprogram.code2session_with(
+      config=@miniprogram.Config::new(app_id="", app_secret="test-secret"),
+      transport=mock,
+      js_code="081Ab2Cd3Ef4Gh5",
+    )
+  catch {
+    @moon-pay-sdk.Config(_) => "rejected"
+    _ => "other error"
+  } noraise {
+    _ => "no error raised"
+  }
+  assert_eq(verdict, "rejected")
+  assert_eq(mock.recorded().length(), 0)
+}

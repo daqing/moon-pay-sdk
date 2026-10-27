@@ -160,6 +160,27 @@ async fn main {
 }
 ```
 
+#### Grab a fresh login code with the `wxlogin` CLI
+
+`js_code` comes from `wx.login` inside the real client — single-use and
+expired after five minutes. The `cmd/wxlogin` CLI automates that step:
+
+```bash
+# Drives WeChat DevTools over its automation port (cli auto), runs
+# wx.login inside the mini-program project and prints a fresh code:
+moon run cmd/wxlogin -- --project </path/to/mini-program/>
+
+# Or exchange a pasted code by hand — --appid/--secret fall back to
+# WXPAY_APPID / WXPAY_APP_SECRET, then an interactive prompt:
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+Prerequisites for `--project`: WeChat DevTools logged in, with
+Settings → Security → Service Port enabled. The `cli` path resolves from
+`--cli` → `WXPAY_DEVTOOLS_CLI` → the default macOS/Windows install
+location. Error-code hints (40013/40029/41004/40125/45011) are covered in
+[docs/wechat.md](docs/wechat.md).
+
 ### WeChat Pay: callback
 
 ```moonbit nocheck
@@ -168,7 +189,7 @@ async fn handle_wechat_callback(
   wechat : @wechat.Client,
   headers : Array[(String, String)],
   body : Bytes,
-) -> (Int, String) {
+) -> (Int32, String) {
   // Verifies the WeChat Pay signature (replay window included), decrypts the
   // AES-256-GCM resource and returns the parsed payment result.
   let notification = wechat.verify_callback(headers, body)
@@ -233,6 +254,28 @@ async fn handle_alipay_notify(
   @alipay.ack_success()
 }
 ```
+
+## Web demo: run it against real gateways
+
+[`cmd/webdemo`](cmd/webdemo/README.md) is a minimal web app that exercises the
+SDK end to end against the **real** WeChat Pay and Alipay gateways: Native (QR)
+checkout through `Client::native_order`, order status through
+`Client::query_order`, signed callbacks through `Client::verify_callback`, and
+Alipay page pay through `Client::page_pay_url` / `Client::verify_notify`.
+Credentials come from the environment:
+
+```bash
+cp cmd/webdemo/env.example.sh cmd/webdemo/env.sh
+$EDITOR cmd/webdemo/env.sh          # fill in real gateway credentials
+source cmd/webdemo/env.sh && moon run cmd/webdemo
+```
+
+Then open <http://127.0.0.1:1943> (WeChat) or <http://127.0.0.1:1943/alipay>,
+pick an amount, and pay. Per-variable tables and the configuration diagnostic
+(`bash cmd/webdemo/diagnose.sh`) are in
+[`cmd/webdemo/README.md`](cmd/webdemo/README.md)
+(中文版：[cmd/webdemo/README.zh-CN.md](cmd/webdemo/README.zh-CN.md)). Every
+order is a real charge — the amount selector defaults to ¥0.01.
 
 ## Architecture
 

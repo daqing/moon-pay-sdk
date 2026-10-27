@@ -188,6 +188,29 @@ async fn build_miniapp(wechat : @wechat.Client) -> @miniprogram.Client raise {
 yourself; `Client::pay_with_openid(openid~)` skips the exchange when you
 already keep openids.
 
+When only the mini-program's own credentials are at hand — no merchant pay
+client — use the standalone `code2session_with(config~, transport~, js_code~)`,
+or verify from the command line:
+
+```bash nocheck
+# appid/secret resolve from --flag → WXPAY_APPID / WXPAY_APP_SECRET → an
+# interactive prompt. The code can only come from wx.login inside the WeChat
+# client — pass it with --code or paste it at the prompt.
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+Even the paste can go away — `--project` drives WeChat DevTools over its
+automation port (`cli auto`), runs `wx.login` inside the real mini-program
+project and prints a fresh code; the webdemo panel exchanges it for the
+openid and places the order:
+
+```bash nocheck
+# Prerequisites: DevTools logged in, and Settings → Security → Service Port
+# enabled. The cli path resolves from --cli → WXPAY_DEVTOOLS_CLI → the
+# default macOS/Windows install location.
+moon run cmd/wxlogin -- --project ~/mini-programs/demo
+```
+
 ## Order query
 
 Callbacks can get lost — query to reconcile, by out-trade number or WeChat
@@ -253,7 +276,11 @@ in, then `source cmd/webdemo/env.sh && moon run cmd/webdemo`.
 | `WXPAY_PUBLIC_KEY` | no | Public-key mode: the WeChat Pay public key (`pub_key.pem`) from the console; PEM text or file path |
 | `WXPAY_PUBLIC_KEY_ID` | no | Public-key mode: the `PUB_KEY_ID_…` serial shown next to it — set both or neither |
 | `WXPAY_NOTIFY_URL` | no | Callback URL sent with every order; defaults to a placeholder |
-| `WXPAY_APP_SECRET` | no | Mini-program AppSecret (小程序 → 开发管理 → 开发设置); enables the mini-program pay panel, where the server exchanges `wx.login` codes for openids |
+| `WXPAY_APP_SECRET` | no | Mini-program AppSecret (小程序 → 开发管理 → 开发设置); enables the mini-program pay panel, where the server exchanges `wx.login` codes for openids. To target a different mini program, use the `WXPAY_MINIAPP_APPID`/`WXPAY_MINIAPP_APP_SECRET` pair below |
+| `WXPAY_MINIAPP_APPID` | no | The mini program's own appid — used for the login exchange and for the panel's JSAPI orders — when it differs from `WXPAY_APPID`; defaults to `WXPAY_APPID` |
+| `WXPAY_MINIAPP_APP_SECRET` | no | That mini program's AppSecret, when it differs from `WXPAY_APP_SECRET`; defaults to `WXPAY_APP_SECRET` |
+| `WXPAY_MINIAPP_MCHID` / `WXPAY_MINIAPP_SERIAL_NO` / `WXPAY_MINIAPP_PRIVATE_KEY` / `WXPAY_MINIAPP_API_V3_KEY` | no | The panel's own merchant identity — WeChat rejects the order unless the panel's appid and mchid are bound. Set only what differs; each falls back to its `WXPAY_*` counterpart |
+| `WXPAY_MINIAPP_PUBLIC_KEY` / `WXPAY_MINIAPP_PUBLIC_KEY_ID` | no | Public-key mode for the panel's merchant, same shape as `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID`; defaults to the pay-side values |
 
 ### What each value must be
 
@@ -276,8 +303,10 @@ The server listens on **1943** and serves one page per gateway:
 
 - **`http://127.0.0.1:1943/`** — the WeChat page: Native QR checkout with
   2-second polling, a JSAPI section (openid in, `wx.requestPayment` params
-  out) and, with `WXPAY_APP_SECRET` set, a mini-program section (login code
-  in, params out). Callbacks land on `POST /api/wechat/notify`.
+  out) and, with the mini-program credentials set (`WXPAY_MINIAPP_APPID`/
+  `WXPAY_MINIAPP_APP_SECRET`, falling back to `WXPAY_APPID`/`WXPAY_APP_SECRET`),
+  a mini-program section (login code in, params out). Callbacks land on
+  `POST /api/wechat/notify`.
 - **`http://127.0.0.1:1943/alipay`** — the Alipay page (see the Alipay docs).
 
 The page asks `GET /api/config` at load which panels are enabled; a gateway
