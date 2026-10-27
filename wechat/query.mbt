@@ -44,7 +44,9 @@ fn trade_state_of(text : String) -> TradeState {
 /// The full status of one WeChat Pay order, as returned by order query.
 pub(all) struct OrderStatus {
   out_trade_no : String
-  transaction_id : String
+  /// WeChat's transaction id — the query answer only carries it after the
+  /// payment succeeded, so unpaid orders see `None`.
+  transaction_id : String?
   trade_state : TradeState
   total_fen : Int32
   payer_fen : Int32?
@@ -57,7 +59,7 @@ pub fn OrderStatus::out_trade_no(self : OrderStatus) -> String {
 }
 
 ///|
-pub fn OrderStatus::transaction_id(self : OrderStatus) -> String {
+pub fn OrderStatus::transaction_id(self : OrderStatus) -> String? {
   self.transaction_id
 }
 
@@ -123,7 +125,9 @@ fn optional_string(json : Json, key : String) -> String? {
 fn parse_order_status(json : Json) -> OrderStatus raise @moon-pay-sdk.SdkError {
   {
     out_trade_no: field(json, "out_trade_no"),
-    transaction_id: field(json, "transaction_id"),
+    // transaction_id only appears once the payment succeeded; unpaid
+    // orders (NOTPAY and friends) answer without it.
+    transaction_id: optional_string(json, "transaction_id"),
     trade_state: trade_state_of(field(json, "trade_state")),
     total_fen: int_field(obj_field(json, "amount"), "total"),
     payer_fen: optional_int(obj_field(json, "amount"), "payer_total"),

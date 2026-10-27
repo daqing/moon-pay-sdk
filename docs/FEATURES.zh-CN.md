@@ -61,8 +61,9 @@ package
 
 ### 查单
 
-`OrderStatus` 包含 `out_trade_no`、`transaction_id`、`trade_state`、
-`total_fen`、可选 `payer_fen` 和可选 `success_time`。
+`OrderStatus` 包含 `out_trade_no`、`transaction_id`（支付成功后才有——
+未支付订单的查单响应里没有这个字段）、`trade_state`、`total_fen`、
+可选 `payer_fen` 和可选 `success_time`。
 
 `TradeState` 覆盖全部已文档状态 —— `SUCCESS`、`REFUND`、`NOTPAY`、
 `CLOSED`、`REVOKED`、`USERPAYING`、`PAYERROR` —— 另有 `Unknown(String)`

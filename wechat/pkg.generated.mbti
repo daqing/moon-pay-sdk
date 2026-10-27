@@ -116,7 +116,7 @@ pub fn Notification::transaction_id(Self) -> String
 
 pub(all) struct OrderStatus {
   out_trade_no : String
-  transaction_id : String
+  transaction_id : String?
   trade_state : TradeState
   total_fen : Int32
   payer_fen : Int32?
@@ -127,7 +127,7 @@ pub fn OrderStatus::payer_fen(Self) -> Int32?
 pub fn OrderStatus::success_time(Self) -> String?
 pub fn OrderStatus::total_fen(Self) -> Int32
 pub fn OrderStatus::trade_state(Self) -> TradeState
-pub fn OrderStatus::transaction_id(Self) -> String
+pub fn OrderStatus::transaction_id(Self) -> String?
 
 pub(all) enum TradeState {
   Success
