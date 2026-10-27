@@ -62,6 +62,8 @@ source cmd/webdemo/env.sh && moon run cmd/webdemo
 | `WXPAY_PUBLIC_KEY_ID` | 否 | 公钥模式：控制台显示的公钥序列号，例如 `PUB_KEY_ID_25566888`——两个都填或都不填 |
 | `WXPAY_NOTIFY_URL` | 否 | 下单时传入的回调地址，默认为占位符 |
 | `WXPAY_APP_SECRET` | 否 | 小程序 AppSecret（小程序 → 开发管理 → 开发设置）；设置后启用小程序支付区块，服务端用 `wx.login` code 换 openid |
+| `WXPAY_MINIAPP_APPID` | 否 | 登录换取所用的小程序 appid，与 `WXPAY_APPID` 不同的小程序时设置；缺省用 `WXPAY_APPID` |
+| `WXPAY_MINIAPP_APP_SECRET` | 否 | 该小程序的 AppSecret，与 `WXPAY_APP_SECRET` 不同时设置；缺省用 `WXPAY_APP_SECRET` |
 
 设置 `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID` 后，微信的签名会用这把公钥
 验证，不再下载平台证书（公钥模式，新商户账号默认）；不设置则走证书模式

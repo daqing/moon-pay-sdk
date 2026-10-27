@@ -21,7 +21,7 @@ pub fn Client::new(
   config.validate()
   if config.app_id != pay.config.appid {
     raise Config(
-      "app_id \{config.app_id} does not match the pay client's appid \{pay.config.appid}",
+      "app_id \{config.app_id} does not match the pay client's appid \{pay.config.appid} — a JSAPI openid is only valid under the appid that issued it, so one-call orders need both to be the mini-program's appid. To keep the login credentials separate, exchange the code yourself with code2session_with and order with pay_with_openid",
     )
   }
   { config, pay, transport, }

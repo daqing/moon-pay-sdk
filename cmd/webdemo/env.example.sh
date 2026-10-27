@@ -47,6 +47,12 @@ export WXPAY_API_V3_KEY=""
 # mini-program section that orders by login code in one call.
 # export WXPAY_APP_SECRET=""
 
+# Optional: the mini program's own appid/secret, when they differ from
+# WXPAY_APPID / WXPAY_APP_SECRET (e.g. the merchant signs Native orders
+# under another appid). Both fall back to the pay-side values above.
+# export WXPAY_MINIAPP_APPID=""
+# export WXPAY_MINIAPP_APP_SECRET=""
+
 # ---------------------------------------------------------------------------
 # Optional: Alipay page (desktop website) checkout, alipay.trade.page.pay.
 # With these set the page gains an Alipay panel; without them the app runs
