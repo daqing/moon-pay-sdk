@@ -212,6 +212,18 @@ async fn handle_alipay_notify(
 }
 ```
 
+## Web 演示：对真实网关端到端联调
+
+[`cmd/webdemo`](cmd/webdemo/README.zh-CN.md) 是一个极简 Web 应用，用于对**真实**微信支付与支付宝网关端到端联调 SDK：经 `Client::native_order` 创建 Native（扫码）订单，用 `Client::query_order` 轮询订单状态，经 `Client::verify_callback` 验证签名回调，支付宝走 `Client::page_pay_url` / `Client::verify_notify`。凭证全部来自环境变量：
+
+```bash
+cp cmd/webdemo/env.example.sh cmd/webdemo/env.sh
+$EDITOR cmd/webdemo/env.sh          # 填入真实网关凭证
+source cmd/webdemo/env.sh && moon run cmd/webdemo
+```
+
+然后打开 <http://127.0.0.1:1943>（微信）或 <http://127.0.0.1:1943/alipay>，选择金额并支付。逐变量说明表与配置诊断脚本（`bash cmd/webdemo/diagnose.sh`）见 [`cmd/webdemo/README.zh-CN.md`](cmd/webdemo/README.zh-CN.md)（英文版：[cmd/webdemo/README.md](cmd/webdemo/README.md)）。每笔订单都是真实扣款——金额选择器默认 ¥0.01。
+
 ## 架构
 
 ```
