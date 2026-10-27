@@ -71,7 +71,7 @@ configuration is incomplete.
 | `WXPAY_PUBLIC_KEY_ID` | no | Public-key mode: the `PUB_KEY_ID_…` serial shown next to it — set both or neither |
 | `WXPAY_NOTIFY_URL` | no | Callback URL sent with every order; defaults to a placeholder |
 | `WXPAY_APP_SECRET` | no | Mini-program AppSecret (小程序 → 开发管理 → 开发设置); enables the mini-program pay panel, where the server exchanges `wx.login` codes for openids |
-| `WXPAY_MINIAPP_APPID` | no | The mini program's own appid for the login exchange, when it differs from `WXPAY_APPID`; defaults to `WXPAY_APPID` |
+| `WXPAY_MINIAPP_APPID` | no | The mini program's own appid — used for the login exchange and for the panel's JSAPI orders — when it differs from `WXPAY_APPID`; defaults to `WXPAY_APPID` |
 | `WXPAY_MINIAPP_APP_SECRET` | no | That mini program's AppSecret, when it differs from `WXPAY_APP_SECRET`; defaults to `WXPAY_APP_SECRET` |
 
 With `WXPAY_PUBLIC_KEY`/`WXPAY_PUBLIC_KEY_ID` set, signatures from WeChat are

@@ -258,7 +258,7 @@ async fn handle_wechat_callback(
 | `WXPAY_PUBLIC_KEY_ID` | 否 | 公钥模式：旁边显示的 `PUB_KEY_ID_…` 序列号——两个都填或都不填 |
 | `WXPAY_NOTIFY_URL` | 否 | 下单时传入的回调地址，默认为占位符 |
 | `WXPAY_APP_SECRET` | 否 | 小程序 AppSecret（小程序 → 开发管理 → 开发设置）；启用小程序支付区块，服务端用它换取 `wx.login` code 对应的 openid |
-| `WXPAY_MINIAPP_APPID` | 否 | 登录换取所用的小程序 appid（与 `WXPAY_APPID` 不同的小程序时设置）；缺省用 `WXPAY_APPID` |
+| `WXPAY_MINIAPP_APPID` | 否 | 小程序自己的 appid——登录换取和小程序面板的 JSAPI 下单都用它——与 `WXPAY_APPID` 不同的小程序时设置；缺省用 `WXPAY_APPID` |
 | `WXPAY_MINIAPP_APP_SECRET` | 否 | 该小程序的 AppSecret（与 `WXPAY_APP_SECRET` 不同时设置）；缺省用 `WXPAY_APP_SECRET` |
 
 ### 每个值必须填什么

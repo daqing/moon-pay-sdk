@@ -49,7 +49,9 @@ export WXPAY_API_V3_KEY=""
 
 # Optional: the mini program's own appid/secret, when they differ from
 # WXPAY_APPID / WXPAY_APP_SECRET (e.g. the merchant signs Native orders
-# under another appid). Both fall back to the pay-side values above.
+# under another appid). The mini-program panel exchanges login codes and
+# places its JSAPI orders under this pair, so the merchant must be bound
+# to that appid. Both fall back to the pay-side values above.
 # export WXPAY_MINIAPP_APPID=""
 # export WXPAY_MINIAPP_APP_SECRET=""
 

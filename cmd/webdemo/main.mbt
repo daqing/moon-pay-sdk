@@ -34,6 +34,9 @@ priv struct App {
   /// The mini-program's own login credentials — independent of the pay
   /// appid so the code exchange can target a different mini program.
   miniapp_config : @miniprogram.Config?
+  /// Orders for the mini-program panel, placed under the mini program's
+  /// own appid; only built when that differs from the pay appid.
+  miniapp_pay : @wechat.Client?
   alipay : @alipay.Client?
   alipay_notify_url : String
   orders : Map[String, OrderRec]
@@ -86,12 +89,31 @@ async fn main {
       Some(@miniprogram.Config::new(app_id~, app_secret~))
     _ => None
   }
-  match (miniapp_config, wechat_client) {
-    (Some(config), Some(pay)) if config.app_id != pay.config.appid =>
+  // When the mini program has its own appid, run the panel's JSAPI orders
+  // under that appid as well: same merchant keys, a second client. The
+  // merchant must be bound to the mini-program appid for WeChat to accept.
+  let miniapp_pay : @wechat.Client? = match (miniapp_config, wechat_client) {
+    (Some(config), Some(pay)) if config.app_id != pay.config.appid => {
       println(
-        "note: mini-program appid \{config.app_id} differs from the pay appid \{pay.config.appid} — the code exchange uses the mini-program pair, but the JSAPI order goes out under the pay appid, so the mini-program panel needs the pay appid to be the mini program's own appid",
+        "note: mini-program appid \{config.app_id} differs from the pay appid \{pay.config.appid} — the panel exchanges codes and places its JSAPI orders under the mini program's appid; the merchant must be bound to it",
       )
-    _ => ()
+      try
+        Some(
+          @wechat.Client::new(
+            config={ ..pay.config, appid: config.app_id, },
+            transport=@transport.HttpClient::new(),
+          ),
+        )
+      catch {
+        e => {
+          println("miniapp pay client construction failed: \{e}")
+          None
+        }
+      } noraise {
+        client => client
+      }
+    }
+    _ => None
   }
   if wechat_client is Some(_) && miniapp_config is None {
     println(
@@ -106,6 +128,7 @@ async fn main {
     wechat: wechat_client,
     notify_url,
     miniapp_config,
+    miniapp_pay,
     alipay: alipay_client,
     alipay_notify_url,
     orders: Map([]),
@@ -659,14 +682,20 @@ async fn handle_create_miniapp_order(
       return
     }
   }
-  let pay = match app.wechat {
+  // The panel orders under the mini program's appid when it built its own
+  // pay client; otherwise it shares the main pay client.
+  let pay = match app.miniapp_pay {
     Some(pay) => pay
-    None => {
-      respond_json(conn, 503, {
-        "error": "WeChat Pay is not configured (set the WXPAY_* variables and restart)",
-      })
-      return
-    }
+    None =>
+      match app.wechat {
+        Some(pay) => pay
+        None => {
+          respond_json(conn, 503, {
+            "error": "WeChat Pay is not configured (set the WXPAY_* variables and restart)",
+          })
+          return
+        }
+      }
   }
   let yuan = match query_param(req.path, key="amount_yuan") {
     Some(yuan) => yuan
