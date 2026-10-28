@@ -1,7 +1,7 @@
 ///|
 /// Validate a WeChat order amount. Amounts travel as integer fen and must be
 /// positive — zero and negatives are rejected before they reach the gateway.
-pub fn validate_amount_fen(fen : Int) -> Unit raise SdkError {
+pub fn validate_amount_fen(fen : Int32) -> Unit raise SdkError {
   if fen <= 0 {
     raise Config("amount must be a positive number of fen, got \{fen}")
   }
@@ -10,7 +10,7 @@ pub fn validate_amount_fen(fen : Int) -> Unit raise SdkError {
 ///|
 /// Format an amount in fen as the two-decimal yuan string Alipay expects in
 /// `total_amount`: 8800 -> "88.00", 5 -> "0.05". The amount must be positive.
-pub fn format_yuan(fen : Int) -> String raise SdkError {
+pub fn format_yuan(fen : Int32) -> String raise SdkError {
   validate_amount_fen(fen)
   let yuan = fen / 100
   let cents = fen % 100
@@ -22,7 +22,7 @@ pub fn format_yuan(fen : Int) -> String raise SdkError {
 /// answers into integer fen: "88.00" -> 8800. Anything but exactly two
 /// decimals — one decimal, thousands separators, signs, blanks — is rejected,
 /// so a mismatch always means a malformed amount, never a silent rounding.
-pub fn parse_yuan_fen(text : StringView) -> Int raise SdkError {
+pub fn parse_yuan_fen(text : StringView) -> Int32 raise SdkError {
   let text = text.to_owned()
   let parts = text.split(".").collect()
   if parts.length() != 2 {
@@ -43,7 +43,7 @@ pub fn parse_yuan_fen(text : StringView) -> Int raise SdkError {
 }
 
 ///|
-fn digits_of(text : StringView, original : String) -> Int raise SdkError {
+fn digits_of(text : StringView, original : String) -> Int32 raise SdkError {
   let mut value = 0
   for ch in text {
     let code = ch.to_int()
@@ -73,8 +73,8 @@ fn contains_char(text : StringView, ch : Char) -> Bool {
 fn check_out_trade_no(
   out_trade_no : StringView,
   original : String,
-  min_len~ : Int,
-  max_len~ : Int,
+  min_len~ : Int32,
+  max_len~ : Int32,
   extra_chars~ : String,
 ) -> Unit raise SdkError {
   let len = out_trade_no.length()

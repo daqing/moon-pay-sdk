@@ -6,7 +6,7 @@
 
 项目为 MoonBit 黑客松而开发，面向 MoonBit native 后端——没有 JavaScript 桥接，也没有解释器参与运行。从 RSA 请求签名、回调解密到 TLS 传输，全部以原生代码运行，底层依赖 [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/async) 和 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt) 的纯 MoonBit 密码学栈。
 
-> **状态**：v0.1.0 已实现[功能](#功能)所列全部内容；代码示例与发布 API 一致，可编译。
+> **状态**：v0.10.0 已实现[功能](#功能)所列全部内容；代码示例与发布 API 一致。
 
 ## 功能
 
@@ -14,6 +14,10 @@
 
 - **Native 支付** — 创建订单并返回 `code_url`，在网站上渲染成二维码供用户扫码
 - **H5 支付** — 创建订单并返回支付链接，在移动端浏览器中拉起微信支付
+- **JSAPI 支付** — 微信内下单（小程序或公众号网页），传入付款人 openid，
+  生成已签名的 `wx.requestPayment` 参数集
+- **小程序支付** — 独立的 `miniprogram` 包：`wx.login` code 换 openid
+  （code2session）并一步生成签名好的 `wx.requestPayment` 参数集
 - **查单** — 按商户订单号或交易单号查询订单，用于回调丢失时对账
 - **回调处理** — 使用平台证书验签，解密 AES-256-GCM 报文并解析支付结果
 - **公钥模式** — 也可使用商户控制台下发的微信支付公钥（`PUB_KEY_ID_...`）验签，无需下载平台证书
@@ -47,6 +51,7 @@ moon add daqing/moon-pay-sdk
 ```
 import {
   "daqing/moon-pay-sdk/wechat",
+  "daqing/moon-pay-sdk/miniprogram",
   "daqing/moon-pay-sdk/alipay",
 }
 ```
@@ -55,31 +60,105 @@ import {
 
 ### 微信支付：扫码支付与查单
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn main {
   let wechat = @wechat.Client::new(
-    appid="wx8888888888888888",
-    mchid="1900000000",
-    serial_no="YOUR-CERT-SERIAL",
-    private_key_path="apiclient_key.pem",
-    api_v3_key="YOUR-API-V3-KEY",
+    config=@wechat.Config::new(
+      appid="wx8888888888888888",
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // apiclient_key.pem 的 PEM 文本，启动时加载一次
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
   )
 
-  // Native 支付：将 order.code_url 渲染成二维码。
+  // Native 支付：将 order.code_url() 渲染成二维码。
   let order = wechat.native_order(
     out_trade_no="hackathon-20261001-0001",
     total=100, // 单位为分：100 = 人民币 1.00 元
     description="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/wechat",
   )
-  println("QR content: \{order.code_url}")
+  println("QR content: \{order.code_url()}")
+
+  // JSAPI 支付（小程序 / 微信内网页）：传付款人 openid，
+  // 把签名好的参数集交给 wx.requestPayment。
+  let jsapi = wechat.jsapi_order(
+    out_trade_no="hackathon-20261001-0002",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    openid="oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
+  )
+  let pay = wechat.jsapi_pay_params(prepay_id=jsapi.prepay_id())
+  println("wx.requestPayment timeStamp: \{pay.timestamp()}")
 
   // 回调可能丢失——主动查单对账。
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
-  println(paid.trade_state) // "SUCCESS"、"NOTPAY" 等
+  if paid.trade_state() is @wechat.Success {
+    println("已支付 \{paid.total_fen()} 分")
+  }
 }
 ```
+
+### 微信支付：小程序下单
+
+```moonbit nocheck
+///|
+async fn main {
+  let wechat = @wechat.Client::new(
+    config=@wechat.Config::new(
+      appid="wx8888888888888888", // 小程序 appid
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // PEM 文本，启动时加载一次
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
+  )
+  let miniapp = @miniprogram.Client::new(
+    config=@miniprogram.Config::new(
+      app_id="wx8888888888888888", // 必须与支付客户端的 appid 一致
+      app_secret="YOUR-MINI-PROGRAM-APP-SECRET",
+    ),
+    pay=wechat,
+    transport=@transport.HttpClient::new(),
+  )
+  // 从 wx.login 的 code 一步到 wx.requestPayment 参数；code 一次性且
+  // 五分钟内有效，应在下单时换取。
+  let result = miniapp.pay(
+    out_trade_no="hackathon-20261001-0006",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    js_code~, // wx.login 刚返回的 code
+  )
+  // 把 result.pay_params() 返回给小程序调用 wx.requestPayment。
+}
+```
+
+#### 用 `wxlogin` 命令行获取新鲜的登录 code
+
+`js_code` 来自真机小程序里的 `wx.login`——一次性、五分钟过期。
+`cmd/wxlogin` 把这一步自动化：
+
+```bash
+# 通过自动化端口（cli auto）驱动微信开发者工具，在真实小程序项目里
+# 执行 wx.login 并打印新鲜的 code：
+moon run cmd/wxlogin -- --project </path/to/mini-program/>
+
+# 或者手动粘贴 code 换取——--appid/--secret 依次回退
+# WXPAY_APPID / WXPAY_APP_SECRET，最后交互输入：
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+`--project` 的前置条件：微信开发者工具已登录，且
+设置 → 安全设置 → 服务端口 已开启。`cli` 路径按
+`--cli` → `WXPAY_DEVTOOLS_CLI` → macOS/Windows 默认安装位置依次解析。
+各错误码提示（40013/40029/41004/40125/45011）见
+[docs/wechat.zh-CN.md](docs/wechat.zh-CN.md)。
 
 ### 微信支付：回调处理
 
@@ -92,7 +171,7 @@ async fn handle_wechat_callback(
 ) -> (Int, String) {
   // 验证微信支付签名（含防重放时间窗），解密 AES-256-GCM 报文，返回解析后的支付结果。
   let notification = wechat.verify_callback(headers, body)
-  if notification.trade_state() is wechat.Success {
+  if notification.trade_state() is @wechat.Success {
     // notification.out_trade_no() 已支付——在这里更新你自己的订单存储。
     @wechat.ack_success()
   } else {
@@ -103,19 +182,22 @@ async fn handle_wechat_callback(
 
 ### 支付宝：电脑 / 手机网站支付
 
-```moonbit
+```moonbit nocheck
 ///|
 async fn main {
   let alipay = @alipay.Client::new(
-    app_id="2021000000000000",
-    private_key_path="app_private_key.pem", // 你的应用私钥
-    alipay_public_key_path="alipay_public_key.pem", // 用于验签的支付宝公钥
+    config=@alipay.Config::new(
+      app_id="2021000000000000",
+      private_key_pem~, // 你的应用私钥，PEM 文本
+      alipay_public_key_pem~, // 控制台显示的支付宝公钥，PEM 文本
+    ),
+    transport=@transport.HttpClient::new(),
   )
 
   // 电脑网站支付：让用户跳转到这个 URL。
   let url = alipay.page_pay_url(
     out_trade_no="hackathon-20261001-0002",
-    total_amount="88.00", // 人民币，保留两位小数
+    total_fen=8800, // 单位为分：8800 = 人民币 88.00 元
     subject="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/alipay",
     return_url="https://example.com/thanks",
@@ -125,7 +207,7 @@ async fn main {
   // 手机网站支付用法相同。
   let wap_url = alipay.wap_pay_url(
     out_trade_no="hackathon-20261001-0003",
-    total_amount="88.00",
+    total_fen=8800,
     subject="MoonBit Hackathon Ticket",
     notify_url="https://example.com/callback/alipay",
   )
@@ -138,16 +220,30 @@ async fn main {
 ///|
 async fn handle_alipay_notify(
   alipay : @alipay.Client,
-  params : Map[String, String], // 解析后的 POST 表单参数
-) {
-  // 对通知参数做 RSA2 验签。
-  let notify = alipay.verify_notify(params)
-  if notify.trade_status == "TRADE_SUCCESS" {
-    // 支付确认——在这里更新你自己的订单存储。
+  form : Array[(String, String)], // 解析后的 urlencoded POST body
+) -> String {
+  // 先验 RSA2 签名，再校验 app_id 归属。
+  let notify = alipay.verify_notify(form)
+  if notify.trade_status() is @alipay.TradeSuccess
+    && notify.amount_matches(8800) {
+    // 签名正确、来自支付宝、金额一致——标记订单已支付。
   }
   // 返回纯文本 "success"，支付宝才会停止重试。
+  @alipay.ack_success()
 }
 ```
+
+## Web 演示：对真实网关端到端联调
+
+[`cmd/webdemo`](cmd/webdemo/README.zh-CN.md) 是一个极简 Web 应用，用于对**真实**微信支付与支付宝网关端到端联调 SDK：经 `Client::native_order` 创建 Native（扫码）订单，用 `Client::query_order` 轮询订单状态，经 `Client::verify_callback` 验证签名回调，支付宝走 `Client::page_pay_url` / `Client::verify_notify`。凭证全部来自环境变量：
+
+```bash
+cp cmd/webdemo/env.example.sh cmd/webdemo/env.sh
+$EDITOR cmd/webdemo/env.sh          # 填入真实网关凭证
+source cmd/webdemo/env.sh && moon run cmd/webdemo
+```
+
+然后打开 <http://127.0.0.1:1943>（微信）或 <http://127.0.0.1:1943/alipay>，选择金额并支付。逐变量说明表与配置诊断脚本（`bash cmd/webdemo/diagnose.sh`）见 [`cmd/webdemo/README.zh-CN.md`](cmd/webdemo/README.zh-CN.md)（英文版：[cmd/webdemo/README.md](cmd/webdemo/README.md)）。每笔订单都是真实扣款——金额选择器默认 ¥0.01。
 
 ## 架构
 
@@ -155,7 +251,8 @@ async fn handle_alipay_notify(
 你的 MoonBit 应用
           │
 moon-pay-sdk
-├── wechat      Native / H5 支付、查单、回调验签与解密
+├── wechat      Native / H5 / JSAPI 支付、查单、回调验签与解密
+├── miniprogram  wx.login code 换取 openid，一步完成小程序下单
 ├── alipay      电脑 / 手机网站支付、查单、异步通知验签
 ├── crypto      RSA-SHA256 签名与验签、X.509 解析、AES-256-GCM（mooncrypt）
 └── transport   基于 moonbitlang/async 的 HTTPS（Linux epoll / macOS kqueue）
@@ -171,10 +268,24 @@ moon-pay-sdk
 - **基于 mooncrypt 的密码学** — 请求签名（RSA-SHA256）、验签与回调解密（AES-256-GCM）使用纯 MoonBit 密码学栈 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt)（算法）、`moonbitstack/mooncred`（X.509 证书）与 `moonbitstack/moonbase`（base16/base64），均按规范向量测试。不手写密码学，也不自写 OpenSSL C FFI；测试套件额外用 `openssl` 生成的参考签名做交叉验证。
 - **仅支持 native** — 商户私钥只应出现在服务端，因此 SDK 面向 native 后端，产出自包含的原生二进制。
 
+## 文档
+
+更多指南见 [`docs/`](docs/)：
+
+- **JSAPI 支付测试指南** —
+  [docs/jsapi-testing.zh-CN.md](docs/jsapi-testing.zh-CN.md)
+  （英文版：[docs/jsapi-testing.md](docs/jsapi-testing.md)）：如何对真实
+  微信网关端到端验收公众号（JSAPI）支付——凭证准备、获取付款人 openid、
+  下单、微信内拉起支付、回调验证。验收 JSAPI 功能从这里开始。
+- 微信支付指南 — [docs/wechat.zh-CN.md](docs/wechat.zh-CN.md) /
+  [docs/wechat.md](docs/wechat.md)
+- 支付宝指南 — [docs/alipay.zh-CN.md](docs/alipay.zh-CN.md) /
+  [docs/alipay.md](docs/alipay.md)
+
 ## Roadmap
 
 - **黑客松版本** — 见[功能](#功能)所列范围
-- **后续** — 退款（微信 v3、`alipay.trade.refund`）、对账单下载、JSAPI / 小程序支付、平台证书自动更新、对接沙箱的集成测试
+- **后续** — 退款（微信 v3、`alipay.trade.refund`）、对账单下载、平台证书自动更新、对接沙箱的集成测试
 
 ## 许可证
 

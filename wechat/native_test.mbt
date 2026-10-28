@@ -2,7 +2,7 @@
 // A client wired to a mock transport with a pinned clock; test_keys/ key.
 fn mock_client(
   responses : Array[@transport.Response],
-  verify_responses? : Bool = false,
+  verify_responses~ : Bool = false,
 ) -> (@wechat.Client, @transport.MockTransport) {
   let mock = @transport.MockTransport::new(responses)
   let client = @wechat.Client::new(

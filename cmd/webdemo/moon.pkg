@@ -8,6 +8,7 @@ import {
   "moonbitlang/core/encoding/utf8",
   "daqing/moon-pay-sdk",
   "daqing/moon-pay-sdk/alipay",
+  "daqing/moon-pay-sdk/miniprogram",
   "daqing/moon-pay-sdk/transport",
   "daqing/moon-pay-sdk/wechat",
 }

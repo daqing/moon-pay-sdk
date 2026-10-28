@@ -41,6 +41,27 @@ export WXPAY_API_V3_KEY=""
 # still works for the QR + query flow.
 # export WXPAY_NOTIFY_URL="https://your.example.com/api/wechat/notify"
 
+# Optional: mini-program pay panel. The mini-program AppSecret from the
+# console (小程序 → 开发管理 → 开发设置), used server-side to exchange
+# wx.login codes for openids. With it set, the WeChat page gains a
+# mini-program section that orders by login code in one call.
+# export WXPAY_APP_SECRET=""
+
+# Optional: the mini program's own identity, when it differs from the
+# WXPAY_* pay-side setup above — e.g. the mini program is bound to another
+# merchant account. The panel exchanges login codes and places its JSAPI
+# orders under this pair, so the appid and mchid must be bound on WeChat's
+# side. Every variable falls back to its pay-side counterpart; set only
+# what differs.
+# export WXPAY_MINIAPP_APPID=""
+# export WXPAY_MINIAPP_APP_SECRET=""
+# export WXPAY_MINIAPP_MCHID=""
+# export WXPAY_MINIAPP_SERIAL_NO=""
+# export WXPAY_MINIAPP_PRIVATE_KEY=""        # PEM text or a path to the file
+# export WXPAY_MINIAPP_API_V3_KEY=""
+# export WXPAY_MINIAPP_PUBLIC_KEY=""         # public-key mode, both or neither
+# export WXPAY_MINIAPP_PUBLIC_KEY_ID=""
+
 # ---------------------------------------------------------------------------
 # Optional: Alipay page (desktop website) checkout, alipay.trade.page.pay.
 # With these set the page gains an Alipay panel; without them the app runs

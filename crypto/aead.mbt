@@ -6,7 +6,7 @@ pub fn aes256_gcm_decrypt(
   key : BytesView,
   nonce : BytesView,
   cipher : BytesView,
-  aad? : BytesView = b""[:],
+  aad~ : BytesView = b""[:],
 ) -> Bytes raise CryptoError {
   if key.length() != 32 {
     raise Operation("aes-256-gcm key must be 32 bytes, got \{key.length()}")

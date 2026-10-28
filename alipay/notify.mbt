@@ -6,7 +6,7 @@ pub(all) struct NotifyResult {
   out_trade_no : String
   trade_no : String
   total_amount : String
-  total_fen : Int
+  total_fen : Int32
   app_id : String
   seller_id : String?
   raw : Array[(String, String)]
@@ -33,7 +33,7 @@ pub fn NotifyResult::total_amount(self : NotifyResult) -> String {
 }
 
 ///|
-pub fn NotifyResult::total_fen(self : NotifyResult) -> Int {
+pub fn NotifyResult::total_fen(self : NotifyResult) -> Int32 {
   self.total_fen
 }
 
@@ -53,7 +53,7 @@ pub fn NotifyResult::seller_id(self : NotifyResult) -> String? {
 /// notification, not that it is the one you are waiting for.
 pub fn NotifyResult::amount_matches(
   self : NotifyResult,
-  expected_fen : Int,
+  expected_fen : Int32,
 ) -> Bool {
   self.total_fen == expected_fen
 }

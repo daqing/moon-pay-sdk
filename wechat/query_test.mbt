@@ -14,7 +14,7 @@ async test "query by out_trade_no sends a signed GET and parses the status" {
   let (client, mock) = mock_client([status_response("SUCCESS")])
   let status = client.query_order(out_trade_no="hack-20261001-0001")
   assert_eq(status.out_trade_no(), "hack-20261001-0001")
-  assert_eq(status.transaction_id(), "4200001234")
+  assert_eq(status.transaction_id(), Some("4200001234"))
   assert_true(status.trade_state() is Success)
   assert_eq(status.total_fen(), 100)
   assert_eq(status.payer_fen(), Some(100))
@@ -35,11 +35,32 @@ async test "query by out_trade_no sends a signed GET and parses the status" {
 async test "query by transaction id uses the id route" {
   let (client, mock) = mock_client([status_response("SUCCESS")])
   let status = client.query_order_by_id(transaction_id="4200001234")
-  assert_eq(status.transaction_id(), "4200001234")
+  assert_eq(status.transaction_id(), Some("4200001234"))
   assert_eq(
     mock.recorded()[0].url,
     "https://api.mch.weixin.qq.com/v3/pay/transactions/id/4200001234?mchid=1900000000",
   )
+}
+
+///|
+async test "an unpaid order answers without transaction_id and still parses" {
+  // WeChat only adds transaction_id (and success_time) once the payment
+  // succeeded; NOTPAY answers omit both — polling must not break on them.
+  let (client, _) = mock_client([
+    {
+      status: 200,
+      headers: [],
+      body: @utf8.encode(
+        "{\"out_trade_no\":\"hack-20261001-0002\",\"trade_state\":\"NOTPAY\",\"amount\":{\"total\":100,\"currency\":\"CNY\",\"payer_currency\":\"CNY\"}}",
+      ),
+    },
+  ])
+  let status = client.query_order(out_trade_no="hack-20261001-0002")
+  assert_eq(status.transaction_id(), None)
+  assert_eq(status.success_time(), None)
+  assert_eq(status.payer_fen(), None)
+  assert_true(status.trade_state() is NotPay)
+  assert_eq(status.total_fen(), 100)
 }
 
 ///|

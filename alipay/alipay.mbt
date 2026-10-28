@@ -15,7 +15,7 @@ pub fn Config::new(
   app_id~ : String,
   private_key_pem~ : String,
   alipay_public_key_pem~ : String,
-  gateway_url? : String = "https://openapi.alipay.com/gateway.do",
+  gateway_url~ : String = "https://openapi.alipay.com/gateway.do",
 ) -> Config {
   { app_id, private_key_pem, alipay_public_key_pem, gateway_url, }
 }

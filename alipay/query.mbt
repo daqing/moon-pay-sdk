@@ -39,7 +39,7 @@ pub(all) struct OrderStatus {
   trade_no : String
   trade_status : TradeStatus
   total_amount : String
-  total_fen : Int
+  total_fen : Int32
   send_pay_date : String?
 }
 
@@ -64,7 +64,7 @@ pub fn OrderStatus::total_amount(self : OrderStatus) -> String {
 }
 
 ///|
-pub fn OrderStatus::total_fen(self : OrderStatus) -> Int {
+pub fn OrderStatus::total_fen(self : OrderStatus) -> Int32 {
   self.total_fen
 }
 

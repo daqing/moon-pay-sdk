@@ -145,8 +145,8 @@ pub fn system_params(
   config : Config,
   api_method~ : String,
   timestamp~ : String,
-  notify_url? : String? = None,
-  return_url? : String? = None,
+  notify_url~ : String? = None,
+  return_url~ : String? = None,
 ) -> Array[(String, String)] {
   let params : Array[(String, String)] = [
     ("app_id", config.app_id),

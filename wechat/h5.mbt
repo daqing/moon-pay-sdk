@@ -17,7 +17,7 @@ pub fn H5Order::h5_url(self : H5Order) -> String {
 pub async fn Client::h5_order(
   self : Client,
   out_trade_no~ : String,
-  total~ : Int,
+  total~ : Int32,
   description~ : String,
   notify_url~ : String,
   payer_client_ip~ : String,

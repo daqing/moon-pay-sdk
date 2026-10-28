@@ -23,22 +23,31 @@
 ///|
 /// One order this app has placed, keyed by out_trade_no.
 priv struct OrderRec {
-  amount_fen : Int
+  amount_fen : Int32
   mut notify_seen : Bool
+  /// Placed under the mini-program panel's own merchant identity — poll
+  /// it through app.miniapp_pay instead of the main WeChat client.
+  miniapp : Bool
 }
 
 ///|
 priv struct App {
   wechat : @wechat.Client?
   notify_url : String
+  /// The mini-program's own login credentials — independent of the pay
+  /// appid so the code exchange can target a different mini program.
+  miniapp_config : @miniprogram.Config?
+  /// Orders for the mini-program panel, placed under the mini program's
+  /// own appid; only built when that differs from the pay appid.
+  miniapp_pay : @wechat.Client?
   alipay : @alipay.Client?
   alipay_notify_url : String
   orders : Map[String, OrderRec]
-  mut seq : Int
+  mut seq : Int32
 }
 
 ///|
-const LISTEN_PORT : Int = 1943
+const LISTEN_PORT : Int32 = 1943
 
 ///|
 async fn main {
@@ -57,6 +66,117 @@ async fn main {
     Some((client, notify_url)) => (Some(client), notify_url)
     None => (None, "")
   }
+  // The mini program's own credentials: WXPAY_MINIAPP_APPID /
+  // WXPAY_MINIAPP_APP_SECRET win; both fall back to the pay appid and
+  // WXPAY_APP_SECRET so the common single-mini-program setup stays a
+  // one-variable configuration.
+  let miniapp_appid = match @env.get_env_var("WXPAY_MINIAPP_APPID") {
+    Some(appid) if appid != "" => Some(appid)
+    _ =>
+      match wechat_client {
+        Some(pay) => Some(pay.config.appid)
+        None => None
+      }
+  }
+  let miniapp_secret = match @env.get_env_var("WXPAY_MINIAPP_APP_SECRET") {
+    Some(secret) if secret != "" => Some(secret)
+    _ =>
+      match @env.get_env_var("WXPAY_APP_SECRET") {
+        Some(secret) if secret != "" => Some(secret)
+        _ => None
+      }
+  }
+  let miniapp_config : @miniprogram.Config? = match
+    (miniapp_appid, miniapp_secret) {
+    (Some(app_id), Some(app_secret)) =>
+      Some(@miniprogram.Config::new(app_id~, app_secret~))
+    _ => None
+  }
+  // The mini-program panel's own merchant identity: every merchant field
+  // can be overridden with a WXPAY_MINIAPP_* variable and otherwise falls
+  // back to the pay-side value — a mini program bound to another merchant
+  // account works by setting only what differs.
+  let miniapp_mchid = miniapp_env("WXPAY_MINIAPP_MCHID", "WXPAY_MCHID")
+  let miniapp_serial_no = miniapp_env(
+    "WXPAY_MINIAPP_SERIAL_NO", "WXPAY_SERIAL_NO",
+  )
+  let miniapp_api_v3_key = miniapp_env(
+    "WXPAY_MINIAPP_API_V3_KEY", "WXPAY_API_V3_KEY",
+  )
+  let miniapp_key_pem = match load_pem_env("WXPAY_MINIAPP_PRIVATE_KEY", []) {
+    Some(pem) => Some(pem)
+    None => load_pem_env("WXPAY_PRIVATE_KEY", [])
+  }
+  let miniapp_base_url = match @env.get_env_var("WXPAY_BASE_URL") {
+    Some(url) if url != "" => url
+    _ => "https://api.mch.weixin.qq.com"
+  }
+  let miniapp_pub_pem = miniapp_env(
+    "WXPAY_MINIAPP_PUBLIC_KEY", "WXPAY_PUBLIC_KEY",
+  )
+  let miniapp_pub_id = miniapp_env(
+    "WXPAY_MINIAPP_PUBLIC_KEY_ID", "WXPAY_PUBLIC_KEY_ID",
+  )
+  let miniapp_pay : @wechat.Client? = match
+    (
+      miniapp_config, miniapp_mchid, miniapp_serial_no, miniapp_api_v3_key, miniapp_key_pem,
+    ) {
+    (
+      Some(config),
+      Some(mchid),
+      Some(serial_no),
+      Some(api_v3_key),
+      Some(private_key_pem),
+    ) => {
+      let pub_pem = match (miniapp_pub_pem, miniapp_pub_id) {
+        (Some(pem), Some(id)) if pem != "" && id != "" => Some((pem, id))
+        _ => None
+      }
+      let (pub_pem, pub_id) = match pub_pem {
+        Some((pem, id)) => (pem, id)
+        None => ("", "")
+      }
+      try
+        Some(
+          @wechat.Client::new(
+            config=@wechat.Config::new(
+              appid=config.app_id,
+              mchid~,
+              serial_no~,
+              private_key_pem~,
+              api_v3_key~,
+              base_url=miniapp_base_url,
+              platform_public_key_pem=pub_pem,
+              platform_public_key_id=pub_id,
+            ),
+            transport=@transport.HttpClient::new(),
+          ),
+        )
+      catch {
+        e => {
+          println("miniapp pay client construction failed: \{e}")
+          None
+        }
+      } noraise {
+        client => client
+      }
+    }
+    _ => None
+  }
+  match (miniapp_config, miniapp_mchid, wechat_client) {
+    (Some(config), Some(mchid), Some(pay)) =>
+      if config.app_id != pay.config.appid || mchid != pay.config.mchid {
+        println(
+          "note: mini-program panel runs under appid \{config.app_id} / mchid \{mchid} (pay side: \{pay.config.appid} / \{pay.config.mchid})",
+        )
+      }
+    _ => ()
+  }
+  if wechat_client is Some(_) && miniapp_config is None {
+    println(
+      "note: mini-program pay disabled (set WXPAY_APP_SECRET or WXPAY_MINIAPP_APP_SECRET to enable it)",
+    )
+  }
   let (alipay_client, alipay_notify_url) = match alipay {
     Some((client, notify_url)) => (Some(client), notify_url)
     None => (None, "")
@@ -64,6 +184,8 @@ async fn main {
   let app : App = {
     wechat: wechat_client,
     notify_url,
+    miniapp_config,
+    miniapp_pay,
     alipay: alipay_client,
     alipay_notify_url,
     orders: Map([]),
@@ -288,6 +410,16 @@ async fn load_alipay() -> (@alipay.Client, String)? {
 }
 
 ///|
+/// The mini-program override of one merchant variable: a non-empty
+/// WXPAY_MINIAPP_* value wins, otherwise the pay-side variable applies.
+fn miniapp_env(mini_name : String, pay_name : String) -> String? {
+  match @env.get_env_var(mini_name) {
+    Some(value) if value != "" => Some(value)
+    _ => @env.get_env_var(pay_name)
+  }
+}
+
+///|
 /// Read a required variable; the missing list distinguishes an absent name
 /// from one exported with an empty value, and both leave `None` behind.
 fn require_env(name : String, missing : Array[String]) -> String? {
@@ -405,6 +537,18 @@ async fn route(
   } else if req.meth is @http.Post &&
     (path == "/api/orders" || path.has_prefix("/api/orders?")) {
     handle_create_order(app, req, conn)
+  } else if req.meth is @http.Post &&
+    (
+      path == "/api/wechat/jsapi/orders" ||
+      path.has_prefix("/api/wechat/jsapi/orders?")
+    ) {
+    handle_create_jsapi_order(app, req, conn)
+  } else if req.meth is @http.Post &&
+    (
+      path == "/api/wechat/miniapp/orders" ||
+      path.has_prefix("/api/wechat/miniapp/orders?")
+    ) {
+    handle_create_miniapp_order(app, req, conn)
   } else if req.meth is @http.Get && path.has_prefix("/api/orders/") {
     handle_query(app, path, conn)
   } else if req.meth is @http.Post &&
@@ -418,10 +562,11 @@ async fn route(
 }
 
 ///|
-/// GET /api/config — which gateway pages are enabled.
+/// GET /api/config — which gateway pages and panels are enabled.
 async fn handle_config(app : App, conn : @http.ServerConnection) -> Unit {
   respond_json(conn, 200, {
     "wechat": app.wechat is Some(_),
+    "miniapp": app.miniapp_config is Some(_),
     "alipay": app.alipay is Some(_),
   })
 }
@@ -447,7 +592,7 @@ async fn handle_create_order(
     Some(yuan) => yuan
     None => "0.01"
   }
-  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
     _ => 0
   } noraise {
     fen => fen
@@ -474,7 +619,11 @@ async fn handle_create_order(
   }
   match order {
     Some(order) => {
-      app.orders.set(out_trade_no, { amount_fen: fen, notify_seen: false, })
+      app.orders.set(out_trade_no, {
+        amount_fen: fen,
+        notify_seen: false,
+        miniapp: false,
+      })
       println(
         "order \{out_trade_no} \{yuan} yuan, code_url \{order.code_url()}",
       )
@@ -492,11 +641,13 @@ async fn handle_create_order(
 }
 
 ///|
-/// GET /api/orders/<out_trade_no> — query WeChat Pay for the live trade
-/// state so the page can poll without a publicly reachable notify URL.
-async fn handle_query(
+/// POST /api/wechat/jsapi/orders?amount_yuan=0.01&openid=o… — place a JSAPI
+/// order for payment inside WeChat and return the signed wx.requestPayment
+/// parameter set. The order is polled through /api/orders/<out_trade_no>
+/// like a Native order.
+async fn handle_create_jsapi_order(
   app : App,
-  path : String,
+  req : @http.Request,
   conn : @http.ServerConnection,
 ) -> Unit {
   let client = match app.wechat {
@@ -508,11 +659,242 @@ async fn handle_query(
       return
     }
   }
+  let yuan = match query_param(req.path, key="amount_yuan") {
+    Some(yuan) => yuan
+    None => "0.01"
+  }
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+    _ => 0
+  } noraise {
+    fen => fen
+  }
+  if fen <= 0 {
+    respond_json(conn, 400, { "error": "bad amount_yuan: \{yuan}" })
+    return
+  }
+  let openid = match query_param(req.path, key="openid") {
+    Some(openid) if openid != "" => openid
+    _ => {
+      respond_json(conn, 400, {
+        "error": "openid is required (the payer's openid under this appid)",
+      })
+      return
+    }
+  }
+  let out_trade_no = next_out_trade_no(app)
+  let order : @wechat.JsapiOrder? = try
+    client.jsapi_order(
+      out_trade_no~,
+      total=fen,
+      description="moon-pay-sdk integration test",
+      notify_url=app.notify_url,
+      openid~,
+    )
+  catch {
+    e => {
+      println("jsapi_order failed: \{e}")
+      None
+    }
+  } noraise {
+    order => Some(order)
+  }
+  match order {
+    Some(order) => {
+      let params = client.jsapi_pay_params(prepay_id=order.prepay_id()) catch {
+        e => {
+          println("jsapi_pay_params failed: \{e}")
+          respond_json(conn, 502, {
+            "error": "signing the pay params failed (see server log)",
+          })
+          return
+        }
+      }
+      app.orders.set(out_trade_no, {
+        amount_fen: fen,
+        notify_seen: false,
+        miniapp: false,
+      })
+      println(
+        "jsapi order \{out_trade_no} \{yuan} yuan, prepay_id \{order.prepay_id()}",
+      )
+      respond_json(conn, 200, {
+        "out_trade_no": out_trade_no,
+        "amount_fen": fen,
+        "prepay_id": order.prepay_id(),
+        "pay_params": {
+          "appId": params.app_id(),
+          "timeStamp": params.timestamp(),
+          "nonceStr": params.nonce_str(),
+          "package": params.pay_package(),
+          "signType": params.sign_type(),
+          "paySign": params.pay_sign(),
+        },
+      })
+    }
+    None =>
+      respond_json(conn, 502, {
+        "error": "placing the order failed (see server log)",
+      })
+  }
+}
+
+///|
+/// POST /api/wechat/miniapp/orders?amount_yuan=0.01&js_code=… — exchange the
+/// wx.login code for the payer's openid, place the order and return the
+/// signed wx.requestPayment parameter set, in one call. The order polls
+/// through /api/orders/<out_trade_no> like a Native order.
+async fn handle_create_miniapp_order(
+  app : App,
+  req : @http.Request,
+  conn : @http.ServerConnection,
+) -> Unit {
+  let config = match app.miniapp_config {
+    Some(config) => config
+    None => {
+      respond_json(conn, 503, {
+        "error": "mini-program pay is not configured (set WXPAY_APP_SECRET or WXPAY_MINIAPP_APP_SECRET and restart)",
+      })
+      return
+    }
+  }
+  // The panel orders under the mini program's appid when it built its own
+  // pay client; otherwise it shares the main pay client.
+  let pay = match app.miniapp_pay {
+    Some(pay) => pay
+    None =>
+      match app.wechat {
+        Some(pay) => pay
+        None => {
+          respond_json(conn, 503, {
+            "error": "WeChat Pay is not configured (set the WXPAY_* variables and restart)",
+          })
+          return
+        }
+      }
+  }
+  let yuan = match query_param(req.path, key="amount_yuan") {
+    Some(yuan) => yuan
+    None => "0.01"
+  }
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+    _ => 0
+  } noraise {
+    fen => fen
+  }
+  if fen <= 0 {
+    respond_json(conn, 400, { "error": "bad amount_yuan: \{yuan}" })
+    return
+  }
+  let js_code = match query_param(req.path, key="js_code") {
+    Some(code) if code != "" => code
+    _ => {
+      respond_json(conn, 400, {
+        "error": "js_code is required (from wx.login; single-use, expires in 5 minutes)",
+      })
+      return
+    }
+  }
+  let out_trade_no = next_out_trade_no(app)
+  // Step 1 — exchange the code under the mini-program's own credentials.
+  let session : @miniprogram.Session? = try
+    @miniprogram.code2session_with(
+      config~,
+      transport=@transport.HttpClient::new(),
+      js_code~,
+    )
+  catch {
+    e => {
+      println("miniapp code exchange failed: \{e}")
+      None
+    }
+  } noraise {
+    session => Some(session)
+  }
+  let openid = match session {
+    Some(session) => session.openid()
+    None => {
+      respond_json(conn, 502, {
+        "error": "the login code exchange failed (see server log)",
+      })
+      return
+    }
+  }
+  // Step 2 — place the JSAPI order under the pay client's credentials.
+  let outcome : (@wechat.JsapiPayParams, String)? = try {
+    let order = pay.jsapi_order(
+      out_trade_no~,
+      total=fen,
+      description="moon-pay-sdk integration test",
+      notify_url=app.notify_url,
+      openid~,
+    )
+    let params = pay.jsapi_pay_params(prepay_id=order.prepay_id())
+    Some((params, order.prepay_id()))
+  } catch {
+    e => {
+      println("miniapp pay failed: \{e}")
+      None
+    }
+  } noraise {
+    outcome => outcome
+  }
+  match outcome {
+    Some((params, prepay_id)) => {
+      app.orders.set(out_trade_no, {
+        amount_fen: fen,
+        notify_seen: false,
+        miniapp: true,
+      })
+      println(
+        "miniapp order \{out_trade_no} \{yuan} yuan, openid \{openid}, prepay_id \{prepay_id}",
+      )
+      respond_json(conn, 200, {
+        "out_trade_no": out_trade_no,
+        "amount_fen": fen,
+        "openid": openid,
+        "prepay_id": prepay_id,
+        "pay_params": {
+          "appId": params.app_id(),
+          "timeStamp": params.timestamp(),
+          "nonceStr": params.nonce_str(),
+          "package": params.pay_package(),
+          "signType": params.sign_type(),
+          "paySign": params.pay_sign(),
+        },
+      })
+    }
+    None =>
+      respond_json(conn, 502, {
+        "error": "placing the order failed (see server log)",
+      })
+  }
+}
+
+///|
+/// GET /api/orders/<out_trade_no> — query WeChat Pay for the live trade
+/// state so the page can poll without a publicly reachable notify URL.
+async fn handle_query(
+  app : App,
+  path : String,
+  conn : @http.ServerConnection,
+) -> Unit {
   let out_trade_no = path["/api/orders/".length():].to_owned()
   let rec = match app.orders.get(out_trade_no) {
     Some(rec) => rec
     None => {
       respond_json(conn, 404, { "error": "unknown out_trade_no" })
+      return
+    }
+  }
+  // Poll on the merchant that placed the order — the mini-program panel
+  // may run under its own appid/mchid pair.
+  let owner = if rec.miniapp { app.miniapp_pay } else { app.wechat }
+  let client = match owner {
+    Some(client) => client
+    None => {
+      respond_json(conn, 503, {
+        "error": "WeChat Pay is not configured (set WXPAY_* and restart)",
+      })
       return
     }
   }
@@ -556,33 +938,25 @@ async fn handle_notify(
   body : Bytes,
   conn : @http.ServerConnection,
 ) -> Unit {
-  let client = match app.wechat {
-    Some(client) => client
-    None => {
-      let (status, ack) = @wechat.ack_failure(message="wechat not configured")
-      respond_json_raw(conn, status, ack)
-      return
-    }
-  }
   let headers : Array[(String, String)] = []
   for key, value in req.headers {
     headers.push((key.to_string(), value))
   }
-  let notification : @wechat.Notification? = try
-    client.verify_callback(headers, body)
-  catch {
-    e => {
-      println("notify rejected: \{e}")
-      let (status, ack) = @wechat.ack_failure(
-        message="verification failed: \{e}",
-      )
-      respond_json_raw(conn, status, ack)
-      None
-    }
-  } noraise {
-    notification => Some(notification)
+  // Either merchant may call back: try the main client first, then the
+  // mini-program panel's own merchant when it has one.
+  let verified = match app.wechat {
+    Some(client) => verify_notification(client, headers, body)
+    None => None
   }
-  match notification {
+  let verified = match verified {
+    Some(notification) => Some(notification)
+    None =>
+      match app.miniapp_pay {
+        Some(client) => verify_notification(client, headers, body)
+        None => None
+      }
+  }
+  match verified {
     Some(notification) => {
       let out_trade_no = notification.out_trade_no()
       match app.orders.get(out_trade_no) {
@@ -602,7 +976,31 @@ async fn handle_notify(
       let (status, ack) = @wechat.ack_success()
       respond_json_raw(conn, status, ack)
     }
-    None => ()
+    None => {
+      println(
+        "notify rejected: no configured merchant's keys verified the signature",
+      )
+      let (status, ack) = @wechat.ack_failure(message="verification failed")
+      respond_json_raw(conn, status, ack)
+    }
+  }
+}
+
+///|
+/// Verify and decrypt one callback with the given merchant client.
+/// `None` means this client's keys did not sign the callback.
+async fn verify_notification(
+  client : @wechat.Client,
+  headers : Array[(String, String)],
+  body : Bytes,
+) -> @wechat.Notification? {
+  try client.verify_callback(headers, body) catch {
+    e => {
+      println("notify rejected by appid \{client.config.appid}: \{e}")
+      None
+    }
+  } noraise {
+    notification => Some(notification)
   }
 }
 
@@ -627,7 +1025,7 @@ async fn handle_create_alipay_order(
     Some(yuan) => yuan
     None => "0.01"
   }
-  let fen : Int = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
+  let fen : Int32 = try @moon-pay-sdk.parse_yuan_fen(yuan) catch {
     _ => 0
   } noraise {
     fen => fen
@@ -656,7 +1054,11 @@ async fn handle_create_alipay_order(
   }
   match pay_url {
     Some(url) => {
-      app.orders.set(out_trade_no, { amount_fen: fen, notify_seen: false, })
+      app.orders.set(out_trade_no, {
+        amount_fen: fen,
+        notify_seen: false,
+        miniapp: false,
+      })
       println(
         "alipay order \{out_trade_no} \{yuan} yuan, return_url \{return_url}",
       )
@@ -803,7 +1205,7 @@ fn next_out_trade_no(app : App) -> String {
 }
 
 ///|
-fn pad(n : Int, width : Int) -> String {
+fn pad(n : Int32, width : Int32) -> String {
   let s = n.to_string()
   let mut zeros = ""
   let mut left = width - s.length()
@@ -872,7 +1274,7 @@ fn query_param(path : String, key~ : String) -> String? {
 ///|
 async fn respond_json(
   conn : @http.ServerConnection,
-  status : Int,
+  status : Int32,
   body : Json,
 ) -> Unit {
   respond_text(
@@ -886,7 +1288,7 @@ async fn respond_json(
 ///|
 async fn respond_json_raw(
   conn : @http.ServerConnection,
-  status : Int,
+  status : Int32,
   body : String,
 ) -> Unit {
   respond_text(conn, status, "application/json; charset=utf-8", body)
@@ -895,7 +1297,7 @@ async fn respond_json_raw(
 ///|
 async fn respond_text(
   conn : @http.ServerConnection,
-  status : Int,
+  status : Int32,
   content_type : String,
   body : String,
 ) -> Unit {

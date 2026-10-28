@@ -31,7 +31,7 @@ pub(all) struct MockTransport {
 pub fn MockTransport::new(Array[Response]) -> Self
 pub fn MockTransport::recorded(Self) -> Array[Request]
 pub async fn MockTransport::send(Self, Request) -> Response raise TransportError
-pub fn MockTransport::unused_responses(Self) -> Int
+pub fn MockTransport::unused_responses(Self) -> Int32
 pub impl Transport for MockTransport
 
 pub(all) struct Request {
@@ -42,7 +42,7 @@ pub(all) struct Request {
 }
 
 pub(all) struct Response {
-  status : Int
+  status : Int32
   headers : Array[(String, String)]
   body : Bytes
 }

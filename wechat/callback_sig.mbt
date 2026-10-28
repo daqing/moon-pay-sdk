@@ -45,7 +45,7 @@ pub async fn Client::verify_callback_signature(
   self : Client,
   headers~ : CallbackHeaders,
   body~ : StringView,
-  window_seconds? : Int = 300,
+  window_seconds~ : Int32 = 300,
 ) -> Unit raise @moon-pay-sdk.SdkError {
   let ts = match parse_int64(headers.timestamp) {
     Some(ts) => ts

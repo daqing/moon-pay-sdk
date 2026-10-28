@@ -29,7 +29,7 @@ pub fn percent_encode(text : StringView) -> String {
 }
 
 ///|
-fn hex_digit(value : Int) -> String {
+fn hex_digit(value : Int32) -> String {
   let digits = "0123456789ABCDEF"
   let ch = match digits.get_char(value) {
     Some(c) => c
@@ -97,8 +97,8 @@ pub fn percent_decode(text : StringView) -> String raise @moon-pay-sdk.SdkError 
 ///|
 fn hex_value_of(
   view : StringView,
-  index : Int,
-) -> Int raise @moon-pay-sdk.SdkError {
+  index : Int32,
+) -> Int32 raise @moon-pay-sdk.SdkError {
   let ch = view.get_char(index)
   let ch = match ch {
     Some(c) => c

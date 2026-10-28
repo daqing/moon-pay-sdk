@@ -18,7 +18,7 @@ pub fn MockTransport::recorded(self : MockTransport) -> Array[Request] {
 }
 
 ///|
-pub fn MockTransport::unused_responses(self : MockTransport) -> Int {
+pub fn MockTransport::unused_responses(self : MockTransport) -> Int32 {
   self.responses.length()
 }
 

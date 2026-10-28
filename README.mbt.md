@@ -14,8 +14,8 @@ code built on [`moonbitlang/async`](https://mooncakes.io/docs/#/moonbitlang/asyn
 and the pure-MoonBit cryptography of
 [`moonbitstack/mooncrypt`](https://mooncakes.io/docs/#/moonbitstack/mooncrypt).
 
-> **Status**: v0.1.0 implements everything under [Features](#features); the
-> code samples compile against the shipped API.
+> **Status**: v0.10.0 implements everything under [Features](#features); the
+> code samples match the shipped API.
 
 ## Features
 
@@ -25,6 +25,12 @@ and the pure-MoonBit cryptography of
   code on your website
 - **H5 payment** — create an order and get a URL that opens WeChat Pay in a
   mobile browser
+- **JSAPI payment** — create an in-WeChat order (mini-program or
+  official-account page) with the payer's openid, and build the signed
+  `wx.requestPayment` parameter set
+- **Mini-program payment** — a dedicated `miniprogram` package: exchange a
+  `wx.login` code for the payer's openid (code2session) and produce the
+  signed `wx.requestPayment` parameter set in one call
 - **Order query** — look up an order by out-trade number or transaction ID, to
   reconcile missed callbacks
 - **Callback handling** — verify the callback signature against platform
@@ -67,6 +73,7 @@ Then import the packages you need in your `moon.pkg`:
 import {
   "daqing/moon-pay-sdk/wechat",
   "daqing/moon-pay-sdk/alipay",
+  "daqing/moon-pay-sdk/miniprogram",
 }
 ```
 
@@ -97,6 +104,18 @@ async fn main {
   )
   println("QR content: \{order.code_url()}")
 
+  // JSAPI payment (mini-program / in-WeChat page): pass the payer's openid
+  // and hand the signed parameter set to wx.requestPayment.
+  let jsapi = wechat.jsapi_order(
+    out_trade_no="hackathon-20261001-0002",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    openid="oUpF8uMuAJO_M2pxb1Q9zNjWeS6o",
+  )
+  let pay = wechat.jsapi_pay_params(prepay_id=jsapi.prepay_id())
+  println("wx.requestPayment timeStamp: \{pay.timestamp()}")
+
   // Callbacks can get lost — query to reconcile.
   let paid = wechat.query_order(out_trade_no="hackathon-20261001-0001")
   if paid.trade_state() is @wechat.Success {
@@ -104,6 +123,63 @@ async fn main {
   }
 }
 ```
+
+### WeChat Pay: mini-program checkout
+
+```moonbit nocheck
+///|
+async fn main {
+  let wechat = @wechat.Client::new(
+    config=@wechat.Config::new(
+      appid="wx8888888888888888", // the mini-program appid
+      mchid="1900000000",
+      serial_no="YOUR-CERT-SERIAL",
+      private_key_pem~, // PEM text, loaded once at startup
+      api_v3_key="YOUR-32-CHARACTER-APIV3-KEY",
+    ),
+    transport=@transport.HttpClient::new(),
+  )
+  let miniapp = @miniprogram.Client::new(
+    config=@miniprogram.Config::new(
+      app_id="wx8888888888888888", // must equal the pay client's appid
+      app_secret="YOUR-MINI-PROGRAM-APP-SECRET",
+    ),
+    pay=wechat,
+    transport=@transport.HttpClient::new(),
+  )
+  // One call from the wx.login code to wx.requestPayment parameters; codes
+  // are single-use and expire in five minutes, so exchange at order time.
+  let result = miniapp.pay(
+    out_trade_no="hackathon-20261001-0006",
+    total=100,
+    description="MoonBit Hackathon Ticket",
+    notify_url="https://example.com/callback/wechat",
+    js_code~, // fresh from wx.login
+  )
+  // Return result.pay_params() to the mini-program for wx.requestPayment.
+}
+```
+
+#### Grab a fresh login code with the `wxlogin` CLI
+
+`js_code` comes from `wx.login` inside the real client — single-use and
+expired after five minutes. The `cmd/wxlogin` CLI automates that step:
+
+```bash
+# Drives WeChat DevTools over its automation port (cli auto), runs
+# wx.login inside the mini-program project and prints a fresh code:
+moon run cmd/wxlogin -- --project </path/to/mini-program/>
+
+# Or exchange a pasted code by hand — --appid/--secret fall back to
+# WXPAY_APPID / WXPAY_APP_SECRET, then an interactive prompt:
+moon run cmd/wxlogin -- --appid wx8888888888888888 --secret SECRET --code 081Ab2Cd3Ef4Gh5
+```
+
+Prerequisites for `--project`: WeChat DevTools logged in, with
+Settings → Security → Service Port enabled. The `cli` path resolves from
+`--cli` → `WXPAY_DEVTOOLS_CLI` → the default macOS/Windows install
+location. Error-code hints (40013/40029/41004/40125/45011) are covered in
+[docs/wechat.md](docs/wechat.md).
 
 ### WeChat Pay: callback
 
@@ -113,11 +189,11 @@ async fn handle_wechat_callback(
   wechat : @wechat.Client,
   headers : Array[(String, String)],
   body : Bytes,
-) -> (Int, String) {
+) -> (Int32, String) {
   // Verifies the WeChat Pay signature (replay window included), decrypts the
   // AES-256-GCM resource and returns the parsed payment result.
   let notification = wechat.verify_callback(headers, body)
-  if notification.trade_state() is wechat.Success {
+  if notification.trade_state() is @wechat.Success {
     // notification.out_trade_no() is paid — update your own order storage.
     @wechat.ack_success()
   } else {
@@ -179,13 +255,36 @@ async fn handle_alipay_notify(
 }
 ```
 
+## Web demo: run it against real gateways
+
+[`cmd/webdemo`](cmd/webdemo/README.md) is a minimal web app that exercises the
+SDK end to end against the **real** WeChat Pay and Alipay gateways: Native (QR)
+checkout through `Client::native_order`, order status through
+`Client::query_order`, signed callbacks through `Client::verify_callback`, and
+Alipay page pay through `Client::page_pay_url` / `Client::verify_notify`.
+Credentials come from the environment:
+
+```bash
+cp cmd/webdemo/env.example.sh cmd/webdemo/env.sh
+$EDITOR cmd/webdemo/env.sh          # fill in real gateway credentials
+source cmd/webdemo/env.sh && moon run cmd/webdemo
+```
+
+Then open <http://127.0.0.1:1943> (WeChat) or <http://127.0.0.1:1943/alipay>,
+pick an amount, and pay. Per-variable tables and the configuration diagnostic
+(`bash cmd/webdemo/diagnose.sh`) are in
+[`cmd/webdemo/README.md`](cmd/webdemo/README.md)
+(中文版：[cmd/webdemo/README.zh-CN.md](cmd/webdemo/README.zh-CN.md)). Every
+order is a real charge — the amount selector defaults to ¥0.01.
+
 ## Architecture
 
 ```
 your MoonBit application
           │
 moon-pay-sdk
-├── wechat      Native / H5 payment, order query, callback verify & decrypt
+├── wechat      Native / H5 / JSAPI payment, order query, callback verify & decrypt
+├── miniprogram  wx.login code exchange plus one-call mini-program checkout
 ├── alipay      page / wap payment, order query, async notification verify
 ├── crypto      RSA-SHA256 sign & verify, X.509 parsing, AES-256-GCM (mooncrypt)
 └── transport   HTTPS over moonbitlang/async (epoll on Linux, kqueue on macOS)
@@ -212,12 +311,28 @@ Design notes:
 - **Native only** — merchant private keys belong on servers, so the SDK
   targets the native backend and produces a self-contained binary.
 
+## Documentation
+
+Guides live under [`docs/`](docs/):
+
+- **JSAPI payment testing guide** —
+  [docs/jsapi-testing.md](docs/jsapi-testing.md)
+  (中文版：[docs/jsapi-testing.zh-CN.md](docs/jsapi-testing.zh-CN.md)):
+  how to validate the official-account (JSAPI) payment flow end to end
+  against the real WeChat gateway — credentials, obtaining the payer
+  openid, placing the order, invoking payment inside WeChat, and verifying
+  the callback. Start here when reviewing or accepting the JSAPI feature.
+- WeChat Pay guide — [docs/wechat.md](docs/wechat.md) /
+  [docs/wechat.zh-CN.md](docs/wechat.zh-CN.md)
+- Alipay guide — [docs/alipay.md](docs/alipay.md) /
+  [docs/alipay.zh-CN.md](docs/alipay.zh-CN.md)
+
 ## Roadmap
 
 - **Hackathon release** — the feature set listed under [Features](#features)
-- **Next** — refunds (WeChat v3, `alipay.trade.refund`), bill download, JSAPI
-  / mini-program payments, platform-certificate auto refresh, integration
-  tests against provider sandboxes
+- **Next** — refunds (WeChat v3, `alipay.trade.refund`), bill download,
+  platform-certificate auto refresh, integration tests against provider
+  sandboxes
 
 ## License
 
